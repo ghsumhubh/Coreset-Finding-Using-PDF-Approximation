@@ -29,3 +29,24 @@ def sample_data(x_train, y_train, sample_rate, seed):
     smaller_y_train = y_train[indices]
 
     return smaller_x_train, smaller_y_train
+
+def get_baseline_guesses(y):
+    mean_guess = np.mean(y)
+    median_guess = np.median(y)
+    guesses = {
+        'mean': mean_guess,
+        'median': median_guess
+    }
+    return guesses
+
+def get_baseline_results(y, guesses):
+    # for each guess calculate the mse and r2
+    results = {}
+    for key, value in guesses.items():
+        mse = np.mean((y - value) ** 2)
+        r2 = 1 - (np.sum((y - value) ** 2) / np.sum((y - np.mean(y)) ** 2))
+        results[key] = {
+            'MSE': mse,
+            'R^2': r2
+        }
+    return results
