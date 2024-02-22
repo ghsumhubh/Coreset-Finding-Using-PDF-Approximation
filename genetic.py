@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.stats import wasserstein_distance
+# To clear the output of the current cell
+
+# TODO: Use more CORESSSSSSSSS to speed up the process
 
 class GeneticAlgorithmSampler():
     def __init__(self, fitness_function, sample_size, x_train, y_train, elite_size = 3, mutation_cap = 5, population_size = 10,  mutation_rate = 0.1, max_generations = 10, features_indices_to_drop = set(), verbose = False):
@@ -99,7 +102,6 @@ class GeneticAlgorithmSampler():
             indexes = np.where(sample == 1)[0]
             print("Sample: ", indexes)
             print("Fitness: ", fitness)
-
     def run(self):
         self.print_generation_start(1)
         self.init_first_population()
@@ -109,8 +111,6 @@ class GeneticAlgorithmSampler():
             self.print_population()
         self.print_generation_end(1)
     
-
-
         for generation in range(self.max_generations-1):
             self.print_generation_start(generation+2)
             self.repopulate()
