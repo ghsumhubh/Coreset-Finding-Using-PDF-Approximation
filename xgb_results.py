@@ -13,7 +13,8 @@ def xgb_results_regression(x_train, x_test, y_train, y_test):
     # Set the parameters for XGBoost
     xgb_params = {
         'n_estimators': 100,
-        'n_jobs': -1,  # Use all available threads
+        'n_jobs': -1,
+        'random_state': 42, 
     }
 
     # Initialize XGBoost regressor with custom parameters

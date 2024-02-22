@@ -33,7 +33,7 @@ def get_uci_dataset(index):
             categorical_names.append(names[i])
 
     X, Y = make_categorical_into_onehot(X=X, y=Y, columns_to_onehot=categorical_names)
-
+    
     description = {
         'dataset name': key_list[index],
         'number of features': X.shape[1],

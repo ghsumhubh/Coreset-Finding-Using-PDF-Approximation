@@ -49,7 +49,7 @@ class GeneticAlgorithmSampler():
         return offspring
     
     def mutate(self, sample):
-        swaps = np.random.randint(1, self.mutation_cap)
+        swaps = np.random.randint(1, self.mutation_cap+1)
 
         for i in range(swaps):
             # pick two random indices to swap, where one is 1 and the other is 0
