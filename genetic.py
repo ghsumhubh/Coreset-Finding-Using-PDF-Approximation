@@ -84,11 +84,14 @@ class GeneticAlgorithmSampler():
         self.population = new_population
 
     def print_generation_start(self, generation):
-        print("Generation {} started".format(generation))
+        print("---\tGeneration {}\t---".format(generation))
 
     def print_generation_end(self, generation):
-        print("Generation {} ended".format(generation))
-        print("Best fitness: ", self.history[-1])
+        if len(self.history) == 1:
+            print("Best fitness: ", self.history[-1])
+        else:
+            if self.history[-1] < self.history[-2]:
+                print("Best fitness: ", self.history[-1], " (improved)")
 
     def print_population(self):
         print("Population: ")
