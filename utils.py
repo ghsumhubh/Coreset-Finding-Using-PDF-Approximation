@@ -1,6 +1,7 @@
 import numpy as np
-from scipy.stats import entropy
 import pandas as pd
+from scipy.stats import gaussian_kde
+from scipy.stats import wasserstein_distance
 
 def convert_to_numpy_dataset(x_train, x_test, y_train, y_test):
     # convert to numpy arrays
@@ -32,32 +33,42 @@ def sample_data(x_train, y_train, sample_size, seed):
     return smaller_x_train, smaller_y_train
 
 def sample_data_improved(x_train, y_train, sample_size):
-    population_size = 100
+    population_size = 10
+    elite_size = 3
     combined_data = np.column_stack((x_train, y_train))
-    first_population = generate_first_population(population_size, x_train, sample_size)
-    fitnesses = [fitness(sample, combined_data) for sample in first_population]
-    first_population, fitnesses = zip(*sorted(zip(first_population, fitnesses), key=lambda x: x[1]))
+    print("Generating first population")
+    population = generate_first_population(population_size, x_train, sample_size)
+    print("Calculating fitnesses")
+    fitnesses = [fitness(sample, combined_data) for sample in population]
+    population, fitnesses = zip(*sorted(zip(population, fitnesses), key=lambda x: x[1]))
     generations = 10
     mutation_chance = 0.1
     best_fitness = [fitnesses[0]]
 
     for _ in range(generations):
         # Repopulate
-        population = first_population[:10] # keep the best 10 samples
-        candidates_for_parents = first_population[:50] # only the best 50 samples can be parents
+        print("Generation: ", _)
+        elite = population[:elite_size]
+        new_polution = elite
         while len(population) < population_size:
-            parent1 = np.random.choice(candidates_for_parents)
-            parent2 = np.random.choice(candidates_for_parents)
+            print("Population size: ", len(population))
+            # choose parents from top 50% of the population
+            parent1_index = np.random.choice(range(int(population_size / 2)))
+            parent2_index = np.random.choice(range(int(population_size / 2)))
+            parent1 = population[parent1_index]
+            parent2 = population[parent2_index]
             son = crossover(parent1, parent2)
             if np.random.rand() < mutation_chance:
                 mutate(son)
-            population.append(son)
+            new_polution.append(son)
+        population = new_polution
 
         # Calculate fitness
         fitnesses = [fitness(sample, combined_data) for sample in population]
         population, fitnesses = zip(*sorted(zip(population, fitnesses), key=lambda x: x[1]))
         best_sample = population[0]
         best_fitness.append(fitnesses[0])
+        print("Best fitness: ", fitnesses[0])
 
     return best_sample[:x_train.shape[0]], best_sample[x_train.shape[0]:], best_fitness
 
@@ -67,13 +78,13 @@ def sample_data_improved(x_train, y_train, sample_size):
 
 def fitness(samples_picked, train_data):
     # make samples_picked a 1D array
-    print(samples_picked.shape)
+    #print(samples_picked.shape)
     # make into boolean array
     samples_picked = samples_picked.astype(bool)
 
     samples_picked = samples_picked.flatten()
 
-    print(samples_picked.shape)
+    #print(samples_picked.shape)
 
 
     feature_count = train_data.shape[1]
@@ -84,10 +95,32 @@ def fitness(samples_picked, train_data):
         # get the column of the feature in the training data
         feature = train_data[:, i]
         # get the column of the feature in the training data
-        print(samples_picked)
+        #print(samples_picked)
         sample_feature = train_data[samples_picked, i]
-        # calculate the KL divergence
-        distance += entropy(feature, sample_feature)
+        # If one of them is uniform, the distance is infinite
+        if np.unique(feature).shape[0] == 1 or np.unique(sample_feature).shape[0] == 1:
+            return np.inf
+        #print(feature.shape)
+        #print(sample_feature.shape)
+       # print("Feature: ", feature)
+       # print("Sample Feature: ", sample_feature)
+        
+        # Step 1: Create KDR for each feature
+        kde1 = gaussian_kde(feature, bw_method='silverman')
+        kde2 = gaussian_kde(sample_feature, bw_method='silverman')
+
+
+        # Step 2: Evaluate the KDRs at a set of points
+        x = np.linspace(min(feature), max(feature), 1000)
+        pdf1 = kde1(x)
+        pdf2 = kde2(x)
+
+        # Step 3: Calculate the Wasserstein distance
+        distance += wasserstein_distance(pdf1, pdf2)
+
+        #print(wasserstein_distance(pdf1, pdf2))
+
+
 
     return distance
 
