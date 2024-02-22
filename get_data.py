@@ -1,5 +1,7 @@
 from ucimlrepo import fetch_ucirepo 
 from utils import make_categorical_into_onehot
+from split import split_data
+from utils import *
 
 UCI_DATASETS_TO_ID = {
         'Abalone' : 1,
@@ -8,14 +10,6 @@ UCI_DATASETS_TO_ID = {
         'SUPPORT2': 880,
         'Infared Thermography Temperature': 925
     }
-
-UCI_DATASETS_TO_CATEGORICAL_FEATURES= {
-        'Abalone' : ['Sex'],
-        'Parkinsons Telemonitoring': [],
-        'AIDS Clinical Trials Group Study 175': [],
-        'SUPPORT2': ['sex', 'dzgroup', 'dzclass', 'edu', 'income', 'race', 'ca', 'prg6m', 'dnr', 'adlp', 'sfdm2'],
-        'Infared Thermography Temperature': 925
-}
 
 
 def get_uci_dataset(index):
@@ -43,13 +37,13 @@ def get_uci_dataset(index):
     description = {
         'dataset name': key_list[index],
         'number of features': X.shape[1],
-        'number of training examples': X.shape[0],
-        'number of test examples': Y.shape[0],
+        'number of samples': X.shape[0],
         'variables information': dataset.variables,
         'categorical features': categorical_names
     }
-
-    return X, Y, description
+    x_train, x_test, y_train, y_test = split_data(X, Y)
+    x_train, x_test, y_train, y_test = convert_to_numpy_dataset(x_train, x_test, y_train, y_test)
+    return x_train, x_test, y_train, y_test, description
 
     
 

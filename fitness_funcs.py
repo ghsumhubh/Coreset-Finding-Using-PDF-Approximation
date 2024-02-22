@@ -7,15 +7,14 @@ def fitness_wasserstein_distance(samples_picked, train_data):
     samples_picked = samples_picked.flatten()
 
 
-
     feature_count = train_data.shape[1]
     distance = 0
     for i in range(feature_count):
         feature = train_data[:, i]
-
         sample_feature = train_data[samples_picked, i]
+
         # In case one of them is constant
-        if np.unique(feature).shape[0] == 1 or np.unique(sample_feature).shape[0] == 1:
+        if np.unique(feature).shape[0] == 1 or np.unique(sample_feature).shape[0] == 1: #TODO: what is both are constant? Maybe add based on rarity?
             distance += 1000 # TODO: Change this to np.inf if can work
         # Otherwise calculate the wasserstein distance
         else:
