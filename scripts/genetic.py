@@ -5,6 +5,9 @@ from scipy.stats import wasserstein_distance
 
 # TODO: Use more CORESSSSSSSSS to speed up the process
 
+
+
+
 class GeneticAlgorithmSampler():
     def __init__(self, fitness_function, sample_size, x_train, y_train, elite_size = 3, mutation_cap = 5, population_size = 10,  mutation_rate = 0.1, max_generations = 10, features_indices_to_drop = set(), verbose = False):
         self.population_size = population_size
@@ -131,6 +134,5 @@ class GeneticAlgorithmSampler():
         sampled_y_train = self.y_train[best_sample]
         return sampled_x_train, sampled_y_train, self.history
         
-
 
 
