@@ -12,8 +12,8 @@ from scripts.plots import *
 import time
 import sys
 
-REDUNDANCY = 5 
-SAMPLE_SIZES = [100, 200, 300 ,400, 500]
+REDUNDANCY = 10 
+SAMPLE_SIZES = [50, 100, 150, 200,250, 300, 350 ,400, 450, 500]
 
 def create_output_folder(dataset_name):
     if not os.path.exists('output'):
@@ -61,11 +61,11 @@ def sample_and_get_results(dataset_id):
                 sample_size=sample_size,
                 x_train=x_train,
                 y_train=y_train,
-                population_size=10, # was 20
-                max_generations=4, # was 10
+                population_size=10, 
+                max_generations=20, 
                 mutation_rate=0.6,
-                mutation_cap=2,
-                elite_size=1, # was 2
+                mutation_cap=0.2,
+                elite_size=1,
                 verbose=False
             )
             

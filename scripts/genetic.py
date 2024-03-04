@@ -2,11 +2,14 @@ import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.stats import wasserstein_distance
 # To clear the output of the current cell
+# measure time
+import time
+import concurrent.futures
 
-# TODO: Use more CORESSSSSSSSS to speed up the process
 
 
-
+def calculate_fitness(sample, used_training, fitness_function):
+    return fitness_function(sample, used_training)
 
 class GeneticAlgorithmSampler():
     def __init__(self, fitness_function, sample_size, x_train, y_train, elite_size = 3, mutation_cap = 5, population_size = 10,  mutation_rate = 0.1, max_generations = 10, features_indices_to_drop = set(), verbose = False):
@@ -52,7 +55,9 @@ class GeneticAlgorithmSampler():
         return offspring
     
     def mutate(self, sample):
-        swaps = np.random.randint(1, self.mutation_cap+1)
+        # get the number of 1's in the sample
+        count = np.sum(sample)
+        swaps = np.random.randint(1, self.mutation_cap*count+1)
 
         for i in range(swaps):
             # pick two random indices to swap, where one is 1 and the other is 0
@@ -62,8 +67,17 @@ class GeneticAlgorithmSampler():
             # swap the two indices
             sample[index1], sample[index2] = sample[index2], sample[index1]
     
+
+
+
+
     def calc_fitnesses(self):
-        self.fitnesses = [self.fitness_function(sample, self.used_training) for sample in self.population]
+        fitness_function = self.fitness_function
+        used_training = self.used_training
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            self.fitnesses = list(executor.map(calculate_fitness, self.population, [used_training]*len(self.population), [fitness_function]*len(self.population)))
+
+        #self.fitnesses = [self.fitness_function(sample, self.used_training) for sample in self.population]
         self.population, self.fitnesses = zip(*sorted(zip(self.population, self.fitnesses), key=lambda x: x[1]))
 
     def store_best_fitness(self):
@@ -74,6 +88,7 @@ class GeneticAlgorithmSampler():
         # Save elite
         new_population = self.population[:self.elite_size]
         new_population = list(new_population)
+
 
         # Repopulate the rest based on top 50% of the population
         while len(new_population) < self.population_size:
@@ -106,9 +121,12 @@ class GeneticAlgorithmSampler():
             print("Sample: ", indexes)
             print("Fitness: ", fitness)
     def run(self):
+
         self.print_generation_start(1)
         self.init_first_population()
+        starting_time = time.time()
         self.calc_fitnesses()
+        print("Time to calculate fitnesses: ", time.time() - starting_time)
         self.store_best_fitness()
         if self.verbose:
             self.print_population()
@@ -118,6 +136,7 @@ class GeneticAlgorithmSampler():
             self.print_generation_start(generation+2)
             self.repopulate()
             self.calc_fitnesses()
+            starting_time = time.time()
             self.store_best_fitness()
             if self.verbose:
                 self.print_population()

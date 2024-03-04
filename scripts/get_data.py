@@ -43,7 +43,7 @@ def get_uci_dataset(index):
             categorical_names.append(names[i])
 
     # TODO: REMOVE NEXT LINE
-    print(dataset.variables)
+    #print(dataset.variables)
     X, Y = make_categorical_into_onehot(X=X, y=Y, columns_to_onehot=categorical_names)
     
     description = {
