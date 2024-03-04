@@ -12,8 +12,22 @@ from scripts.plots import *
 import time
 import sys
 
-REDUNDANCY = 2 
-SAMPLE_SIZES = [100, 200, 300 ,400]
+REDUNDANCY = 5 
+SAMPLE_SIZES = [100, 200, 300 ,400, 500]
+
+def create_output_folder(dataset_name):
+    if not os.path.exists('output'):
+        os.makedirs('output')
+
+    if not os.path.exists('output/plots'):
+        os.makedirs('output/plots')
+    if not os.path.exists(f'output/plots/{dataset_name}'):
+        os.makedirs(f'output/plots/{dataset_name}')
+
+    if not os.path.exists('output/raw_numbers'):
+        os.makedirs('output/raw_numbers')
+    if not os.path.exists(f'output/raw_numbers/{dataset_name}'):
+        os.makedirs(f'output/raw_numbers/{dataset_name}')
 
 
 def sample_and_get_results(dataset_id):
@@ -47,8 +61,8 @@ def sample_and_get_results(dataset_id):
                 sample_size=sample_size,
                 x_train=x_train,
                 y_train=y_train,
-                population_size=2, # was 20
-                max_generations=1, # was 10
+                population_size=10, # was 20
+                max_generations=4, # was 10
                 mutation_rate=0.6,
                 mutation_cap=2,
                 elite_size=1, # was 2
@@ -103,6 +117,32 @@ def do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all
                             dataset_name=dataset_name)
 
 
+def save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results):
+    baseline_results_for_print = baseline_results.copy()
+    baseline_results_for_print['All Data']= all_data_results['Testing Metrics']
+
+    df = pd.DataFrame(avg_dict)
+    df.to_csv(f'output/raw_numbers/{dataset_name}/avg_dict.csv')
+
+    df = pd.DataFrame(std_dict)
+    df.to_csv(f'output/raw_numbers/{dataset_name}/std_dict.csv')
+
+    df = pd.DataFrame(mse_dict_random)
+    df.to_csv(f'output/raw_numbers/{dataset_name}/mse_dict_random.csv')
+
+    df = pd.DataFrame(mse_dict_ga)
+    df.to_csv(f'output/raw_numbers/{dataset_name}/mse_dict_ga.csv')
+
+    df = pd.DataFrame(baseline_results_for_print)
+    df.to_csv(f'output/raw_numbers/{dataset_name}/baseline_results.csv')
+
+    df = pd.DataFrame(all_data_results)
+    df.to_csv(f'output/raw_numbers/{dataset_name}/all_data_results.csv')
+
+    df = pd.DataFrame(SAMPLE_SIZES)
+    df.to_csv(f'output/raw_numbers/{dataset_name}/sample_sizes.csv')
+
+
 def main():
     dataset_id = sys.argv[1]
     if dataset_id == 'ALL':
@@ -112,7 +152,8 @@ def main():
 
     for dataset_id in dataset_ids:
         dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results = sample_and_get_results(dataset_id)
-        create_plot_output_folder(dataset_name)
+        create_output_folder(dataset_name)
+        save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results)
         do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results)
 
 

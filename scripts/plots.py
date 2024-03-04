@@ -3,11 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
-def create_plot_output_folder(dataset_name):
-    if not os.path.exists('plots'):
-        os.makedirs('plots')
-    if not os.path.exists(f'plots/{dataset_name}'):
-        os.makedirs(f'plots/{dataset_name}')
+
 
     
 def plot_comparison_line(metric_name, dictionaries, labels, baseline_results=None, save = False, dataset_name = None):
@@ -33,7 +29,7 @@ def plot_comparison_line(metric_name, dictionaries, labels, baseline_results=Non
     # Display the plot
     plt.title(f'{metric_name} vs Sample Size')
     if save:
-        plt.savefig(f'plots/{dataset_name}/{metric_name}_line.png')
+        plt.savefig(f'output/plots/{dataset_name}/{metric_name}_line.png')
     else:
         plt.show()
 
@@ -88,7 +84,7 @@ def plot_comparison_bar(metric_name, sample_sizes, avg_dict, std_dict, methods, 
     ax.legend()
 
     if save:
-        plt.savefig(f'plots/{dataset_name}/comparison_bar.png')
+        plt.savefig(f'output/plots/{dataset_name}/comparison_bar.png')
     else:
         plt.show()
 
