@@ -57,17 +57,19 @@ def sample_and_get_results(dataset_id):
             x_train_sample, y_train_sample = sample_data(x_train, y_train, sample_size)
             
             genetic_sampler = GeneticAlgorithmSampler(
-                fitness_function=fitness_wasserstein_distance,
+                fitness_function='wasserstein_distance',
                 sample_size=sample_size,
                 x_train=x_train,
                 y_train=y_train,
                 population_size=10, 
-                max_generations=20, 
+                max_generations=30, 
                 mutation_rate=0.6,
                 mutation_cap=0.2,
                 elite_size=1,
                 verbose=False
             )
+
+            
             
             x_train_new_sample, y_train_new_sample, history = genetic_sampler.sample()
             

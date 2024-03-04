@@ -5,11 +5,12 @@ from scipy.stats import wasserstein_distance
 # measure time
 import time
 import concurrent.futures
+from scripts.fitness_funcs import fitness_wasserstein_distance, full_train_pdf
 
 
 
-def calculate_fitness(sample, used_training, fitness_function):
-    return fitness_function(sample, used_training)
+def calculate_fitness(sample, used_training, fitness_function, pdfs, is_constant, mins, maxes):
+    return fitness_function(sample, used_training, pdfs, is_constant, mins, maxes)
 
 class GeneticAlgorithmSampler():
     def __init__(self, fitness_function, sample_size, x_train, y_train, elite_size = 3, mutation_cap = 5, population_size = 10,  mutation_rate = 0.1, max_generations = 10, features_indices_to_drop = set(), verbose = False):
@@ -28,6 +29,7 @@ class GeneticAlgorithmSampler():
         self.indices_to_use = list(set(all_indices) - set(self.features_indices_to_drop))
         self.used_training = self.x_train[:, self.indices_to_use]
         self.verbose = verbose
+        self.pdfs, self.is_consant, self.mins, self.maxes = full_train_pdf(self.used_training)
 
 
 
@@ -72,12 +74,18 @@ class GeneticAlgorithmSampler():
 
 
     def calc_fitnesses(self):
-        fitness_function = self.fitness_function
-        used_training = self.used_training
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            self.fitnesses = list(executor.map(calculate_fitness, self.population, [used_training]*len(self.population), [fitness_function]*len(self.population)))
+        if self.fitness_function == 'wasserstein_distance':
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+        else:
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
 
-        #self.fitnesses = [self.fitness_function(sample, self.used_training) for sample in self.population]
+         
+        
+
+
+
         self.population, self.fitnesses = zip(*sorted(zip(self.population, self.fitnesses), key=lambda x: x[1]))
 
     def store_best_fitness(self):
