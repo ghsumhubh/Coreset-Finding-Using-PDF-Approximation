@@ -1,7 +1,6 @@
 from ucimlrepo import fetch_ucirepo 
-from utils import make_categorical_into_onehot
-from split import split_data
-from utils import *
+from scripts.split import split_data
+from scripts.utils import *
 
 UCI_DATASETS_TO_ID = {
         'Abalone' : 1,
@@ -10,6 +9,9 @@ UCI_DATASETS_TO_ID = {
         'SUPPORT2': 880,
         'Infared Thermography Temperature': 925
     }
+
+def get_dataset(index):
+    return get_uci_dataset(index)
 
 
 def get_uci_dataset(index):
@@ -24,6 +26,14 @@ def get_uci_dataset(index):
     X = dataset.data.features
     Y = dataset.data.targets
 
+    # remove nan values
+    X = X.dropna(axis=1)
+    Y = Y.dropna(axis=1)
+
+    # if 2 targets pick the first one TODO: this is a temporary fix
+    if Y.shape[1] > 1:
+        Y = Y.iloc[:,0]
+
     types= dataset.variables['type']
     names = dataset.variables['name']
 
@@ -32,6 +42,8 @@ def get_uci_dataset(index):
         if types[i] == 'Categorical':
             categorical_names.append(names[i])
 
+    # TODO: REMOVE NEXT LINE
+    print(dataset.variables)
     X, Y = make_categorical_into_onehot(X=X, y=Y, columns_to_onehot=categorical_names)
     
     description = {

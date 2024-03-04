@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error, r2_score, roc_auc_score, average_precision_score
 from scipy.stats import pearsonr, spearmanr
+from scripts.utils import get_baseline_guesses, get_baseline_results
 
 def xgb_results_regression(x_train, x_test, y_train, y_test):
 
@@ -52,6 +53,15 @@ def xgb_results_regression(x_train, x_test, y_train, y_test):
     }
 
     return results
+
+
+
+def get_all_data_and_baseline_results(x_train, x_test, y_train, y_test):
+    all_data_results = xgb_results_regression(x_train, x_test, y_train, y_test)
+    guesses = get_baseline_guesses(np.concatenate((y_train, y_test)))
+    baseline_results = get_baseline_results(y_test, guesses)
+
+    return all_data_results, baseline_results
 
 
 

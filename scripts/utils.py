@@ -18,7 +18,11 @@ def convert_to_numpy_dataset(x_train, x_test, y_train, y_test):
     return x_train, x_test, y_train, y_test
 
 def make_categorical_into_onehot(X, y, columns_to_onehot):
-    X = pd.get_dummies(X, columns=columns_to_onehot)
+
+    valid_columns = list(set(columns_to_onehot).intersection(set(X.columns)))
+    print("Categorical columns: ", columns_to_onehot)
+    print("Valid columns: ", valid_columns)
+    X = pd.get_dummies(X, columns=valid_columns)
     return X, y
 
 

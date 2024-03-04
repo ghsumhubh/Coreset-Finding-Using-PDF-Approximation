@@ -1,11 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
 
-
+def create_plot_output_folder(dataset_name):
+    if not os.path.exists('plots'):
+        os.makedirs('plots')
+    if not os.path.exists(f'plots/{dataset_name}'):
+        os.makedirs(f'plots/{dataset_name}')
 
     
-def plot_comparison_line(metric_name, dictionaries, labels, baseline_results=None):
+def plot_comparison_line(metric_name, dictionaries, labels, baseline_results=None, save = False, dataset_name = None):
     # Plotting data for each dictionary
     for i, data_dict in enumerate(dictionaries):
         sample_sizes = list(data_dict.keys())
@@ -27,11 +32,17 @@ def plot_comparison_line(metric_name, dictionaries, labels, baseline_results=Non
 
     # Display the plot
     plt.title(f'{metric_name} vs Sample Size')
-    plt.show()
+    if save:
+        plt.savefig(f'plots/{dataset_name}/{metric_name}_line.png')
+    else:
+        plt.show()
+
+    plt.close()
 
 
 
-def plot_comparison_bar(sample_sizes, avg_dict, std_dict, methods):
+
+def plot_comparison_bar(metric_name, sample_sizes, avg_dict, std_dict, methods, save = False, dataset_name = None):
     """
     Creates a bar plot showing average and standard deviation per method for each sample rate.
 
@@ -73,8 +84,13 @@ def plot_comparison_bar(sample_sizes, avg_dict, std_dict, methods):
     ax.set_ylabel('Value')
     # only show sample rates that are in the data
     ax.set_xticks(df.index)
-    ax.set_title('Average and Standard Deviation per Method')
+    ax.set_title(f'{metric_name} per method vs Sample Size')
     ax.legend()
 
-    plt.show()
+    if save:
+        plt.savefig(f'plots/{dataset_name}/comparison_bar.png')
+    else:
+        plt.show()
+
+    plt.close()
 
