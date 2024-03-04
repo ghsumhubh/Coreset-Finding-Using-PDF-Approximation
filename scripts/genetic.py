@@ -124,9 +124,7 @@ class GeneticAlgorithmSampler():
 
         self.print_generation_start(1)
         self.init_first_population()
-        starting_time = time.time()
         self.calc_fitnesses()
-        print("Time to calculate fitnesses: ", time.time() - starting_time)
         self.store_best_fitness()
         if self.verbose:
             self.print_population()
