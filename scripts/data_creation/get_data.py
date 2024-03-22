@@ -30,6 +30,8 @@ def get_uci_dataset(index):
     X = X.dropna(axis=1)
     Y = Y.dropna(axis=1)
 
+   
+
     # if 2 targets pick the first one TODO: this is a temporary fix
     if Y.shape[1] > 1:
         Y = Y.iloc[:,0]
@@ -45,6 +47,17 @@ def get_uci_dataset(index):
     # TODO: REMOVE NEXT LINE
     #print(dataset.variables)
     X, Y = make_categorical_into_onehot(X=X, y=Y, columns_to_onehot=categorical_names)
+
+
+    # drop columns that have only 1 unique value
+    columns_to_drop = [col for col in X.columns if X[col].nunique() <= 1]
+    print(columns_to_drop)
+
+    # Drop these columns from the DataFrame
+    X = X.drop(columns=columns_to_drop)
+
+    # print all unique values of the first column in X
+    print(X.iloc[:,0].unique())
     
     description = {
         'dataset name': key_list[index],
