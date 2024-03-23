@@ -53,32 +53,44 @@ class GeneticAlgorithmSampler():
             self.population.append(sample)
         
     def crossover(self, sample1, sample2):
-        max_picked = np.sum(sample1)
-        offspring = np.zeros(sample1.shape[0])
+        offspring = np.zeros(sample1.shape[0], dtype=int)
+        # Indices where both parents have 1
         indexes_where_both_are_1 = np.where(np.logical_and(sample1 == 1, sample2 == 1))[0]
         offspring[indexes_where_both_are_1] = 1
 
-        while np.sum(offspring) < max_picked:
-            # pick a random index that is 0 in son and 1 in at least one of the parents
-            indexes_where_offspring_is_0 = np.where(offspring == 0)[0]
-            indexes_where_offspring_is_0_and_at_least_one_is_1 = np.where(sample1[indexes_where_offspring_is_0] + sample2[indexes_where_offspring_is_0] > 0)[0]
-            random_index = np.random.choice(indexes_where_offspring_is_0_and_at_least_one_is_1)
-            offspring[random_index] = 1
+        max_picked = np.sum(sample1)
+        # Calculate remaining 1s to add
+        ones_needed = int(max_picked - np.sum(offspring))
+        # Indices where at least one parent has 1 and offspring is 0
+        valid_indices = np.where((sample1 + sample2 > 0) & (offspring == 0))[0]
+
+        #print("Ones needed: ", ones_needed)
+        #print("Valid indices: ", valid_indices) 
+        
+        if ones_needed > 0 and valid_indices.size > 0:
+            # If more 1s needed and there are valid indices, randomly pick and update
+            chosen_indices = np.random.choice(valid_indices, min(ones_needed, valid_indices.size), replace=False)
+            offspring[chosen_indices] = 1
 
         return offspring
     
     def mutate(self, sample):
-        # get the number of 1's in the sample
-        count = np.sum(sample)
-        swaps = np.random.randint(1, self.mutation_cap*count+1)
-
-        for i in range(swaps):
-            # pick two random indices to swap, where one is 1 and the other is 0
-            index1 = np.random.choice(np.where(sample == 1)[0])
-            index2 = np.random.choice(np.where(sample == 0)[0])
-
-            # swap the two indices
-            sample[index1], sample[index2] = sample[index2], sample[index1]
+        # Number of 1's to flip to 0's
+        ones_indices = np.where(sample == 1)[0]
+        count = ones_indices.size
+        ones_to_flip = np.random.randint(1, int(self.mutation_cap*count + 1))
+        
+        # Flip the chosen 1's to 0's
+        flip_ones_indices = np.random.choice(ones_indices, ones_to_flip, replace=False)
+        sample[flip_ones_indices] = 0
+        
+        # Decide the number of 0's to flip to 1's, can be the same or different
+        # For this example, let's flip the same amount: ones_to_flip
+        zeros_indices = np.where(sample == 0)[0]
+        flip_zeros_indices = np.random.choice(zeros_indices, ones_to_flip, replace=False)
+        sample[flip_zeros_indices] = 1
+        
+        return sample
     
 
 
@@ -129,7 +141,7 @@ class GeneticAlgorithmSampler():
                 else:
                     offspring = parent2.copy()
             if np.random.rand() < self.mutation_rate:
-                self.mutate(offspring)
+                offspring = self.mutate(offspring)
             new_population.append(offspring)
         
         self.population = new_population

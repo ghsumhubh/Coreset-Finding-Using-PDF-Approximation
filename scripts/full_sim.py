@@ -175,7 +175,21 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
 
     return avg_dict, std_dict, mse_dict_random, mse_dict_random_no_outliers_2, mse_dict_random_no_outliers_25, mse_dict_random_no_outliers_3, mse_dict_random_no_outliers_35, mse_dict_random_no_outliers_4, mse_dict_ga, mse_dict_reverse_ga, all_data_results, baseline_results
 
-def do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_random_no_outliers_2, mse_dict_random_no_outliers_25, mse_dict_random_no_outliers_3, mse_dict_random_no_outliers_35, mse_dict_random_no_outliers_4, mse_dict_ga, mse_dict_reverse_ga, all_data_results, baseline_results,sample_sizes):
+def do_plots(   dataset_name,
+                avg_dict,
+                std_dict,
+                mse_dict_random,
+                mse_dict_random_no_outliers_2,
+                mse_dict_random_no_outliers_25,
+                mse_dict_random_no_outliers_3,
+                mse_dict_random_no_outliers_35,
+                mse_dict_random_no_outliers_4,
+                mse_dict_ga,
+                mse_dict_reverse_ga,
+                all_data_results,
+                baseline_results,
+                sample_sizes):
+    
     plot_comparison_bar(metric_name='MSE',
                         sample_sizes=sample_sizes,
                         avg_dict=avg_dict,
@@ -199,7 +213,19 @@ def do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_random_
                             dataset_name=dataset_name)
 
 
-def save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_random_no_outliers_2, mse_dict_random_no_outliers_25, mse_dict_random_no_outliers_3, mse_dict_random_no_outliers_35, mse_dict_random_no_outliers_4, mse_dict_ga,mse_dict_reverse_ga, all_data_results, baseline_results,sample_sizes):
+def save_dicts_to_csv(  dataset_name,
+                        avg_dict,
+                        std_dict,
+                        mse_dict_random,
+                        mse_dict_random_no_outliers_2,
+                        mse_dict_random_no_outliers_25,
+                        mse_dict_random_no_outliers_3,
+                        mse_dict_random_no_outliers_35,
+                        mse_dict_random_no_outliers_4,
+                        mse_dict_ga,mse_dict_reverse_ga,
+                        all_data_results,
+                        baseline_results,sample_sizes):
+    
     baseline_results_for_print = baseline_results.copy()
     baseline_results_for_print['All Data']= all_data_results['Testing Metrics']
 
@@ -267,11 +293,48 @@ def do_full_simulation(dataset_name, sample_sizes, redundancy):
         test = test.to_numpy()
 
 
-        avg_dict, std_dict, mse_dict_random, mse_dict_random_no_outliers_2, mse_dict_random_no_outliers_25, mse_dict_random_no_outliers_3, mse_dict_random_no_outliers_35, mse_dict_random_no_outliers_4, mse_dict_ga, mse_dict_reverse_ga, all_data_results, baseline_results = sample_and_get_results(train, test, sample_sizes, redundancy)
-        save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random,mse_dict_random_no_outliers_2, mse_dict_random_no_outliers_25, mse_dict_random_no_outliers_3, mse_dict_random_no_outliers_35, mse_dict_random_no_outliers_4, mse_dict_ga,mse_dict_reverse_ga, all_data_results, baseline_results,sample_sizes)
-        do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_random_no_outliers_2, mse_dict_random_no_outliers_25, mse_dict_random_no_outliers_3, mse_dict_random_no_outliers_35, mse_dict_random_no_outliers_4, mse_dict_ga,mse_dict_reverse_ga, all_data_results, baseline_results,sample_sizes)
+        results =  sample_and_get_results(train, test, sample_sizes, redundancy)
+
+        (   avg_dict,
+            std_dict,
+            mse_dict_random,
+            mse_dict_random_no_outliers_2,
+            mse_dict_random_no_outliers_25,
+            mse_dict_random_no_outliers_3,
+            mse_dict_random_no_outliers_35,
+            mse_dict_random_no_outliers_4,
+            mse_dict_ga,
+            mse_dict_reverse_ga,
+            all_data_results,
+            baseline_results) = results
 
 
-
-
-
+        save_dicts_to_csv(  dataset_name = dataset_name,
+                            avg_dict=avg_dict,
+                            std_dict=std_dict,
+                            mse_dict_random=mse_dict_random,
+                            mse_dict_random_no_outliers_2=mse_dict_random_no_outliers_2,
+                            mse_dict_random_no_outliers_25=mse_dict_random_no_outliers_25,
+                            mse_dict_random_no_outliers_3=mse_dict_random_no_outliers_3,
+                            mse_dict_random_no_outliers_35=mse_dict_random_no_outliers_35,
+                            mse_dict_random_no_outliers_4=mse_dict_random_no_outliers_4,
+                            mse_dict_ga=mse_dict_ga,
+                            mse_dict_reverse_ga=mse_dict_reverse_ga,
+                            all_data_results=all_data_results,
+                            baseline_results=baseline_results,
+                            sample_sizes=sample_sizes)
+        
+        do_plots(dataset_name = dataset_name,
+                            avg_dict=avg_dict,
+                            std_dict=std_dict,
+                            mse_dict_random=mse_dict_random,
+                            mse_dict_random_no_outliers_2=mse_dict_random_no_outliers_2,
+                            mse_dict_random_no_outliers_25=mse_dict_random_no_outliers_25,
+                            mse_dict_random_no_outliers_3=mse_dict_random_no_outliers_3,
+                            mse_dict_random_no_outliers_35=mse_dict_random_no_outliers_35,
+                            mse_dict_random_no_outliers_4=mse_dict_random_no_outliers_4,
+                            mse_dict_ga=mse_dict_ga,
+                            mse_dict_reverse_ga=mse_dict_reverse_ga,
+                            all_data_results=all_data_results,
+                            baseline_results=baseline_results,
+                            sample_sizes=sample_sizes)
