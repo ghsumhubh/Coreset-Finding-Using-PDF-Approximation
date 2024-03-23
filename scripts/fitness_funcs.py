@@ -24,30 +24,23 @@ def fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_cons
 
         # Otherwise calculate the wasserstein distance
         else:
-            #starting_time = time.perf_counter()
             kde2 = KernelDensity(bandwidth='silverman', kernel='gaussian')
             kde2.fit(sample_feature.reshape(-1, 1))  # Reshape to make it a column vector
 
-            #print("Time to fit kde for feature ", i, " is: ", time.perf_counter() - starting_time)
-            #starting_time = time.perf_counter()
 
             # Step 2: Evaluate the KDRs at a set of points
             x = np.linspace(mins[i], maxes[i], NUMBER_OF_POINTS).reshape(-1, 1)  # Reshape to make it a column vector
             pdf1 = train_pdfs[i]
             pdf2 = np.exp(kde2.score_samples(x))
 
-            #print("Time to fit and evaluate kde for feature ", i, " is: ", time.perf_counter() - starting_time)
-            #starting_time = time.perf_counter()
-
             # Step 3: Calculate the Wasserstein distance
             distance += wasserstein_distance(pdf1, pdf2)
-            #print("Time to calculate wasserstein distance for feature ", i, " is: ", time.perf_counter() - starting_time)
+
+    # the fitness is minus the distance
+    return -distance
 
 
-
-
-    return distance
-
+# Calculate the pdfs for all features in the training data in order to not have to do it for sampling
 def full_train_pdf(train_data):
 
     feature_count = train_data.shape[1]

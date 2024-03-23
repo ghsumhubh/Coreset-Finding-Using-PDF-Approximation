@@ -57,3 +57,14 @@ def get_baseline_results(y, guesses):
             'R^2': r2
         }
     return results
+
+def name_to_pretty_name(name):
+    name_to_pretty_name = {
+    'insurance': 'Insurance',
+    'melb_data': 'Melbourne Housing',
+    'SeoulBikeData': 'Seoul Bike',
+    'Sleep_Efficiency': 'Sleep Efficiency',
+    'uci_1': 'Abalone',
+    'winequalityN': 'Wine Quality',
+}
+    return name_to_pretty_name[name]

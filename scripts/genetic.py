@@ -13,9 +13,20 @@ def calculate_fitness(sample, used_training, fitness_function, pdfs, is_constant
     return fitness_function(sample, used_training, pdfs, is_constant, mins, maxes)
 
 class GeneticAlgorithmSampler():
-    def __init__(self, fitness_function, sample_size, x_train, y_train, elite_size = 3, mutation_cap = 5, population_size = 10,  mutation_rate = 0.1, max_generations = 10, features_indices_to_drop = set(), verbose = False):
+    def __init__(self,
+                  fitness_function,
+                    sample_size,
+                      x_train, y_train,
+                        elite_size = 3,
+                          mutation_cap = 5,
+                            population_size = 10,
+                                mutation_rate = 0.1,
+                                    crossover_rate = 0.8,
+                                  max_generations = 10,
+                                    features_indices_to_drop = set(), verbose = False):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
+        self.crossover_rate = crossover_rate
         self.max_generations = max_generations
         self.fitness_function = fitness_function
         self.sample_size = sample_size
@@ -81,12 +92,8 @@ class GeneticAlgorithmSampler():
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
 
-         
-        
-
-
-
-        self.population, self.fitnesses = zip(*sorted(zip(self.population, self.fitnesses), key=lambda x: x[1]))
+    
+        self.population, self.fitnesses = zip(*sorted(zip(self.population, self.fitnesses), key=lambda x: x[1], reverse=True))
 
     def store_best_fitness(self):
         self.history.append(self.fitnesses[0])
@@ -97,19 +104,28 @@ class GeneticAlgorithmSampler():
         new_population = self.population[:self.elite_size]
         new_population = list(new_population)
 
+        # Calculate selection probabilities based on linear ranking
+        # Assuming the population size is the denominator for the probability distribution
+        total_ranks = sum(range(1, self.population_size + 1))
+        selection_probabilities = [rank/total_ranks for rank in range(self.population_size, 0, -1)]
 
-        # Repopulate the rest based on top 50% of the population
+        # Repopulate the rest
         while len(new_population) < self.population_size:
-            parent1_index = np.random.choice(range(int(self.population_size / 2)))
-            parent2_index = np.random.choice(range(int(self.population_size / 2)))
-            #print("Parent1 index: ", parent1_index)
-            #print("Parent2 index: ", parent2_index)
-            parent1 = self.population[parent1_index]
-            parent2 = self.population[parent2_index]
-            offspring = self.crossover(parent1, parent2)
+            # Select parents based on rank-based selection probabilities
+            parents_indices = np.random.choice(self.population_size, size=2, p=selection_probabilities, replace=False)
+            parent1 = self.population[parents_indices[0]]
+            parent2 = self.population[parents_indices[1]]
+            if np.random.rand() < self.crossover_rate:
+                offspring = self.crossover(parent1, parent2)
+            else:
+                if np.random.rand() < 0.5:
+                    offspring = parent1
+                else:
+                    offspring = parent2
             if np.random.rand() < self.mutation_rate:
                 self.mutate(offspring)
             new_population.append(offspring)
+        
         self.population = new_population
 
     def print_generation_start(self, generation):

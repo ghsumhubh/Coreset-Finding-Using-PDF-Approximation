@@ -1,7 +1,6 @@
 from scripts.xgb_results import xgb_results_regression, get_all_data_and_baseline_results
 from pprint import pprint
 from scripts.utils import *
-from scripts.get_data import get_dataset
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,8 +11,6 @@ from scripts.plots import *
 import time
 import sys
 
-REDUNDANCY = 10 
-SAMPLE_SIZES = [50, 100, 150, 200,250, 300, 350 ,400, 450, 500]
 
 def create_output_folder(dataset_name):
     if not os.path.exists('output'):
@@ -30,11 +27,14 @@ def create_output_folder(dataset_name):
         os.makedirs(f'output/raw_numbers/{dataset_name}')
 
 
-def sample_and_get_results(dataset_id):
-    x_train, x_test, y_train, y_test, description = get_dataset(dataset_id) #Dataset 1 has 2 colums we need to predict...
+def sample_and_get_results(train, test, sample_sizes, redundancy):
+    # y is the last column
+    x_train = train[:, :-1]
+    y_train = train[:, -1]
 
-    pprint(description)
-    dataset_name = description['dataset name']
+    x_test = test[:, :-1]
+    y_test = test[:, -1]
+
 
     all_data_results, baseline_results = get_all_data_and_baseline_results(x_train, x_test, y_train, y_test)
 
@@ -43,15 +43,15 @@ def sample_and_get_results(dataset_id):
 
 
 
-    for _, sample_size in enumerate(SAMPLE_SIZES):
+    for _, sample_size in enumerate(sample_sizes):
         clear_output()
         print('Sample Size:', sample_size, '\n')
         
         mse_dict_ga[sample_size] = []
         mse_dict_random[sample_size] = []
         
-        for i in range(REDUNDANCY):
-            print('Iteration {}/{}'.format(i+1, REDUNDANCY))
+        for i in range(redundancy):
+            print('Iteration {}/{}'.format(i+1, redundancy))
             np.random.seed(i)
             
             x_train_sample, y_train_sample = sample_data(x_train, y_train, sample_size)
@@ -62,15 +62,14 @@ def sample_and_get_results(dataset_id):
                 x_train=x_train,
                 y_train=y_train,
                 population_size=10, 
-                max_generations=30, 
+                max_generations=30,
+                crossover_rate=0.8, 
                 mutation_rate=0.6,
                 mutation_cap=0.2,
                 elite_size=1,
                 verbose=False
             )
 
-            
-            
             x_train_new_sample, y_train_new_sample, history = genetic_sampler.sample()
             
             results_random = xgb_results_regression(x_train_sample, x_test, y_train_sample, y_test)
@@ -93,7 +92,7 @@ def sample_and_get_results(dataset_id):
         avg_dict['GA'].append(np.mean(mse_dict_ga[sample_size]))
         std_dict['GA'].append(np.std(mse_dict_ga[sample_size]))
 
-    return dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results
+    return avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results
 
 def do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results):
     plot_comparison_bar(metric_name='MSE',
@@ -145,37 +144,35 @@ def save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dic
     df.to_csv(f'output/raw_numbers/{dataset_name}/sample_sizes.csv')
 
 
-def main():
-    dataset_id = sys.argv[1]
-    if dataset_id == 'ALL':
-        dataset_ids = [0, 1, 2, 3, 4]
+def do_full_simulation(dataset_name, sample_sizes, redundancy):
+    if dataset_name == 'ALL':
+        dataset_names = ['Albalone',
+                         'Insurance',
+                         'Melbourne Housing',
+                         'Seol Bike',
+                         'Sleep Efficiency',
+                         'Wine Quality']
+        print('Running full simulation for all datasets')
     else:
-        dataset_ids = [int(dataset_id)]
+        dataset_names = [dataset_name]
 
-    for dataset_id in dataset_ids:
-        dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results = sample_and_get_results(dataset_id)
+    for dataset_name in dataset_names:
+        print('Running full simulation for', dataset_name)
         create_output_folder(dataset_name)
+
+        train = pd.read_csv(f'data/split_datasets/{dataset_name}/train.csv')
+        test = pd.read_csv(f'data/split_datasets/{dataset_name}/test.csv')
+
+        # convert to numpy
+        train = train.to_numpy()
+        test = test.to_numpy()
+
+
+        avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results = sample_and_get_results(train, test, sample_sizes, redundancy)
         save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results)
         do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results)
 
 
 
 
-                     
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-if __name__ == '__main__':
-    main()
