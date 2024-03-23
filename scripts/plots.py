@@ -39,54 +39,51 @@ def plot_comparison_line(metric_name, dictionaries, labels, baseline_results=Non
 
 
 def plot_comparison_bar(metric_name, sample_sizes, avg_dict, std_dict, methods, save = False, dataset_name = None):
-    """
-    Creates a bar plot showing average and standard deviation per method for each sample rate.
 
-    Args:
-        sample_sizes (list): List of sample rates.
-        avg_dict (dict): Dictionary mapping sample rates to lists of averages (one per method).
-        std_dict (dict): Dictionary mapping sample rates to lists of standard deviations (one per method).
-        methods (list): List of methods.
-    """
+     # Prepare data in a structured format
+    data = []
+    for sample_size in sample_sizes:
+        for method in methods:
+            index = sample_sizes.index(sample_size)
+            avg = avg_dict[method][index]
+            std = std_dict[method][index]
+            data.append((sample_size, method, avg, std))
+    df = pd.DataFrame(data, columns=['Sample Size', 'Method', 'Average', 'StdDev'])
 
-    # Create a Pandas DataFrame to organize the data
-    data = {'Sample Size': sample_sizes}
-    for method in methods:
-        data[f'{method} Avg'] = avg_dict[method]
-        data[f'{method} Std'] = std_dict[method]
-    df = pd.DataFrame(data)
-
-    # Set the sample rate as the index for easier plotting
-    df.set_index('Sample Size', inplace=True)
-
-    # Get bar positions based on the number of methods
+    # Adjust bar width and spacing based on the number of methods
     num_methods = len(methods)
-    bar_width = 50 / num_methods
-    positions = [(i-num_methods / 2) * bar_width for i in range(num_methods) ]
+    total_width = 0.8  # Total width for all bars in a group
+    bar_width = total_width / num_methods
+    spacing = 0.1  # Space between groups
+    group_width = total_width + spacing
 
-
-    # Create the plot
+    # Initialize plot
     fig, ax = plt.subplots()
 
-    # Plot average bars for each method
+    # Plot bars for each method
     for i, method in enumerate(methods):
-        ax.bar(df.index + positions[i], df[f'{method} Avg'], width=bar_width, label=f'{method} Avg')
+        method_positions = [p * group_width + i * bar_width for p in range(len(sample_sizes))]
+        method_data = df[df['Method'] == method]
+        ax.bar(method_positions, method_data['Average'], width=bar_width, label=method, align='center')
 
-        # Add error bars for standard deviations
-        ax.errorbar(df.index + positions[i], df[f'{method} Avg'], 
-                    yerr=df[f'{method} Std'], fmt='none', ecolor='black', capsize=5)
+        # Add error bars
+        ax.errorbar(method_positions, method_data['Average'], yerr=method_data['StdDev'], fmt='none', ecolor='black', capsize=5)
 
+    # Adjusting plot aesthetics and labels
     ax.set_xlabel('Sample Size')
     ax.set_ylabel('Value')
-    # only show sample rates that are in the data
-    ax.set_xticks(df.index)
+    ax.set_xticks([p * group_width + total_width / 2 - bar_width / 2 for p in range(len(sample_sizes))])
+    ax.set_xticklabels(sample_sizes)
     ax.set_title(f'{metric_name} per method vs Sample Size')
     ax.legend()
 
     if save:
-        plt.savefig(f'output/plots/{dataset_name}/comparison_bar.png')
+        if dataset_name is not None:
+            filename = f'output/plots/{dataset_name}/comparison_bar.png'
+        else:
+            filename = 'output/plots/comparison_bar.png'
+        plt.savefig(filename)
     else:
         plt.show()
 
     plt.close()
-

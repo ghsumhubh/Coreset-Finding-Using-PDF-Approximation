@@ -6,6 +6,10 @@ import time
 NUMBER_OF_POINTS = 1000 # was 1000
 
 
+
+def reverse_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes):
+    return -fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes)
+
 def fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes):
     samples_picked = samples_picked.astype(bool)
     samples_picked = samples_picked.flatten()

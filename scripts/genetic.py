@@ -5,7 +5,7 @@ from scipy.stats import wasserstein_distance
 # measure time
 import time
 import concurrent.futures
-from scripts.fitness_funcs import fitness_wasserstein_distance, full_train_pdf
+from scripts.fitness_funcs import fitness_wasserstein_distance, full_train_pdf, reverse_wasserstein_distance
 
 
 
@@ -88,6 +88,9 @@ class GeneticAlgorithmSampler():
         if self.fitness_function == 'wasserstein_distance':
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+        elif self.fitness_function == 'reverse_wasserstein_distance':
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [reverse_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
         else:
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
@@ -102,7 +105,10 @@ class GeneticAlgorithmSampler():
     def repopulate(self):
         # Save elite
         new_population = self.population[:self.elite_size]
+        # print the indexes of elite[0] that are 1
+        #print(np.where(new_population[0] == 1)[0])
         new_population = list(new_population)
+
 
         # Calculate selection probabilities based on linear ranking
         # Assuming the population size is the denominator for the probability distribution
@@ -119,9 +125,9 @@ class GeneticAlgorithmSampler():
                 offspring = self.crossover(parent1, parent2)
             else:
                 if np.random.rand() < 0.5:
-                    offspring = parent1
+                    offspring = parent1.copy()
                 else:
-                    offspring = parent2
+                    offspring = parent2.copy()
             if np.random.rand() < self.mutation_rate:
                 self.mutate(offspring)
             new_population.append(offspring)
@@ -135,8 +141,10 @@ class GeneticAlgorithmSampler():
         if len(self.history) == 1:
             print("\t\tBest fitness: ", self.history[-1])
         else:
-            if self.history[-1] < self.history[-2]:
+            if self.history[-1] > self.history[-2]:
                 print("\t\tBest fitness: ", self.history[-1], " (improved)")
+            elif self.history[-1] < self.history[-2]:
+                print("\t\tBest fitness: ", self.history[-1], " (regressed)")
 
     def print_population(self):
         print("Population: ")
@@ -158,7 +166,6 @@ class GeneticAlgorithmSampler():
             self.print_generation_start(generation+2)
             self.repopulate()
             self.calc_fitnesses()
-            starting_time = time.time()
             self.store_best_fitness()
             if self.verbose:
                 self.print_population()
