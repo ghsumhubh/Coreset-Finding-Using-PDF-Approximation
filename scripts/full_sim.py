@@ -27,7 +27,7 @@ def create_output_folder(dataset_name):
         os.makedirs(f'output/raw_numbers/{dataset_name}')
 
 
-def sample_and_get_results(train, test, sample_sizes, redundancy):
+def sample_and_get_results(train, test,sample_sizes , redundancy):
     # y is the last column
     x_train = train[:, :-1]
     y_train = train[:, -1]
@@ -86,7 +86,7 @@ def sample_and_get_results(train, test, sample_sizes, redundancy):
     std_dict['Random'] = []
     avg_dict['GA'] = []
     std_dict['GA'] = []
-    for sample_size in SAMPLE_SIZES:
+    for sample_size in sample_sizes:
         avg_dict['Random'].append(np.mean(mse_dict_random[sample_size]))
         std_dict['Random'].append(np.std(mse_dict_random[sample_size]))
         avg_dict['GA'].append(np.mean(mse_dict_ga[sample_size]))
@@ -94,9 +94,9 @@ def sample_and_get_results(train, test, sample_sizes, redundancy):
 
     return avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results
 
-def do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results):
+def do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results,sample_sizes):
     plot_comparison_bar(metric_name='MSE',
-                        sample_sizes=SAMPLE_SIZES,
+                        sample_sizes=sample_sizes,
                         avg_dict=avg_dict,
                         std_dict=std_dict,
                         methods=['Random', 'GA'], 
@@ -118,7 +118,7 @@ def do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all
                             dataset_name=dataset_name)
 
 
-def save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results):
+def save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results,sample_sizes):
     baseline_results_for_print = baseline_results.copy()
     baseline_results_for_print['All Data']= all_data_results['Testing Metrics']
 
@@ -140,7 +140,7 @@ def save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dic
     df = pd.DataFrame(all_data_results)
     df.to_csv(f'output/raw_numbers/{dataset_name}/all_data_results.csv')
 
-    df = pd.DataFrame(SAMPLE_SIZES)
+    df = pd.DataFrame(sample_sizes)
     df.to_csv(f'output/raw_numbers/{dataset_name}/sample_sizes.csv')
 
 
@@ -169,8 +169,8 @@ def do_full_simulation(dataset_name, sample_sizes, redundancy):
 
 
         avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results = sample_and_get_results(train, test, sample_sizes, redundancy)
-        save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results)
-        do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results)
+        save_dicts_to_csv(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results,sample_sizes)
+        do_plots(dataset_name, avg_dict, std_dict, mse_dict_random, mse_dict_ga, all_data_results, baseline_results,sample_sizes)
 
 
 
