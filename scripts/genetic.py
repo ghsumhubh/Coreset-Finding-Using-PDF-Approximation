@@ -166,22 +166,22 @@ class GeneticAlgorithmSampler():
             print("Fitness: ", fitness)
     def run(self):
 
-        self.print_generation_start(1)
+        #self.print_generation_start(1)
         self.init_first_population()
         self.calc_fitnesses()
         self.store_best_fitness()
         if self.verbose:
             self.print_population()
-        self.print_generation_end(1)
+        #self.print_generation_end(1)
     
         for generation in range(self.max_generations-1):
-            self.print_generation_start(generation+2)
+            #self.print_generation_start(generation+2)
             self.repopulate()
             self.calc_fitnesses()
             self.store_best_fitness()
             if self.verbose:
                 self.print_population()
-            self.print_generation_end(generation+2)
+            #self.print_generation_end(generation+2)
         
         return self.population[0]
     

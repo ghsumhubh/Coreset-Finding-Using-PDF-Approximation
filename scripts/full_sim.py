@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scripts.genetic import GeneticAlgorithmSampler
 from scripts.fitness_funcs import *
-from IPython.display import clear_output
+#from IPython.display import clear_output
 from scripts.plots import *
 import time
 import sys
@@ -58,7 +58,7 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
 
 
     for _, sample_size in enumerate(sample_sizes):
-        clear_output()
+        #clear_output() 
         print('Sample Size:', sample_size, '\n')
 
         mse_dict_random[sample_size] = []
@@ -274,7 +274,7 @@ def do_full_simulation(dataset_name, sample_sizes, redundancy):
         dataset_names = ['Abalone',
                          'Insurance',
                          'Melbourne Housing',
-                         'Seol Bike',
+                         'Seoul Bike',
                          'Sleep Efficiency',
                          'Wine Quality']
         print('Running full simulation for all datasets')
