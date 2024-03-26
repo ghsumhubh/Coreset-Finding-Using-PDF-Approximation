@@ -87,3 +87,36 @@ def plot_comparison_bar(metric_name, sample_sizes, avg_dict, std_dict, methods, 
         plt.show()
 
     plt.close()
+
+
+
+def do_sim_plots(   dataset_name,
+                avg_dict,
+                std_dict,
+                mse_dicts,
+                labels,
+                all_data_results,
+                baseline_results,
+                sample_sizes):
+    
+    plot_comparison_bar(metric_name='MSE',
+                        sample_sizes=sample_sizes,
+                        avg_dict=avg_dict,
+                        std_dict=std_dict,
+                        methods=labels, 
+                        save = True,
+                        dataset_name=dataset_name)
+    
+
+
+
+    baseline_results_for_print = baseline_results.copy()
+    baseline_results_for_print['All Data']= all_data_results['Testing Metrics']
+
+
+    plot_comparison_line(metric_name = 'MSE',
+                            dictionaries = mse_dicts,
+                            labels = labels,
+                            baseline_results = baseline_results_for_print,
+                            save = True,
+                            dataset_name=dataset_name)

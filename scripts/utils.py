@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 
 
 def convert_to_numpy_dataset(x_train, x_test, y_train, y_test):
@@ -68,3 +69,19 @@ def name_to_pretty_name(name):
     'winequalityN': 'Wine Quality',
 }
     return name_to_pretty_name[name]
+
+
+
+def create_output_folder(dataset_name):
+    if not os.path.exists('output'):
+        os.makedirs('output')
+
+    if not os.path.exists('output/plots'):
+        os.makedirs('output/plots')
+    if not os.path.exists(f'output/plots/{dataset_name}'):
+        os.makedirs(f'output/plots/{dataset_name}')
+
+    if not os.path.exists('output/raw_numbers'):
+        os.makedirs('output/raw_numbers')
+    if not os.path.exists(f'output/raw_numbers/{dataset_name}'):
+        os.makedirs(f'output/raw_numbers/{dataset_name}')

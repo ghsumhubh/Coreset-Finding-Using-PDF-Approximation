@@ -5,7 +5,7 @@ from scipy.stats import wasserstein_distance
 # measure time
 import time
 import concurrent.futures
-from scripts.fitness_funcs import fitness_wasserstein_distance, full_train_pdf, reverse_wasserstein_distance
+from scripts.fitness_funcs import fitness_wasserstein_distance, full_train_pdf, fitness_kl_divergence, fitness_js_divergence
 
 
 
@@ -100,13 +100,14 @@ class GeneticAlgorithmSampler():
         if self.fitness_function == 'wasserstein_distance':
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
-        elif self.fitness_function == 'reverse_wasserstein_distance':
+        elif self.fitness_function == 'kl_divergence':
             with concurrent.futures.ProcessPoolExecutor() as executor:
-                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [reverse_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_kl_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+        elif self.fitness_function == 'js_divergence':
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_js_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
         else:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
-
+            raise ValueError("Invalid fitness function")
     
         self.population, self.fitnesses = zip(*sorted(zip(self.population, self.fitnesses), key=lambda x: x[1], reverse=True))
 
