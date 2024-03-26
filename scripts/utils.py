@@ -78,10 +78,13 @@ def create_output_folder(dataset_name):
 
     if not os.path.exists('output/plots'):
         os.makedirs('output/plots')
-    if not os.path.exists(f'output/plots/{dataset_name}'):
-        os.makedirs(f'output/plots/{dataset_name}')
 
     if not os.path.exists('output/raw_numbers'):
         os.makedirs('output/raw_numbers')
     if not os.path.exists(f'output/raw_numbers/{dataset_name}'):
         os.makedirs(f'output/raw_numbers/{dataset_name}')
+
+    if not os.path.exists('output/plots/xgb_results'):
+        os.makedirs('output/plots/xgb_results')
+    if not os.path.exists(f'output/plots/xgb_results/{dataset_name}'):
+        os.makedirs(f'output/plots/xgb_results/{dataset_name}')

@@ -29,7 +29,7 @@ def plot_comparison_line(metric_name, dictionaries, labels, baseline_results=Non
     # Display the plot
     plt.title(f'{metric_name} vs Sample Size')
     if save:
-        plt.savefig(f'output/plots/{dataset_name}/{metric_name}_line.png')
+        plt.savefig(f'output/plots/xgb_results/{dataset_name}/{metric_name}_line.png')
     else:
         plt.show()
 
@@ -78,10 +78,7 @@ def plot_comparison_bar(metric_name, sample_sizes, avg_dict, std_dict, methods, 
     ax.legend()
 
     if save:
-        if dataset_name is not None:
-            filename = f'output/plots/{dataset_name}/comparison_bar.png'
-        else:
-            filename = 'output/plots/comparison_bar.png'
+        filename = f'output/plots/xgb_results/{dataset_name}/comparison_bar.png'
         plt.savefig(filename)
     else:
         plt.show()

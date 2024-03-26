@@ -171,6 +171,6 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
         std_dict['JS Divergence'].append(np.std(mse_dict_js[sample_size]))
 
     mse_dicts = [mse_dict_random, mse_dict_ws, mse_dict_ws_short, mse_dict_kl, mse_dict_kl_short, mse_dict_js]
-    labels = ['Random', 'Wasserstein Distance', 'Wasserstein Distance Short', 'KL Divergence','KL Divergence Short' 'JS Divergence']
+    labels = ['Random', 'Wasserstein Distance', 'Wasserstein Distance Short', 'KL Divergence','KL Divergence Short', 'JS Divergence']
 
     return avg_dict, std_dict, mse_dicts, labels, all_data_results, baseline_results

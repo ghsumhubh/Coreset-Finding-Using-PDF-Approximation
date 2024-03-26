@@ -19,6 +19,6 @@ def get_config():
                         help=f"Name of the dataset to run the simulation on. Choices: {', '.join(valid_choices)}.")
 
     parser.add_argument('--redundancy', type=int, default=40, help='Number of times to sample the data')
-    parser.add_argument('--sample_sizes', type=int, nargs='+', default=[10, 50, 100, 150, 200, 250, 500], help='Sizes of the samples to take')
+    parser.add_argument('--sample_sizes', type=int, nargs='+', default=[50, 100, 150, 200, 250, 500], help='Sizes of the samples to take')
 
     return parser.parse_args()
