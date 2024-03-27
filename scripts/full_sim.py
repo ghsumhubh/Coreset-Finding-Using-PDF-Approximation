@@ -31,7 +31,12 @@ def do_full_simulation(dataset_name, sample_sizes, redundancy):
         test = pd.read_csv(f'data/split_datasets/{dataset_name}/test.csv').to_numpy()
 
 
-        results =  sample_and_get_results(train, test, sample_sizes, redundancy)
+        results =  sample_and_get_results(
+            dataset_name=dataset_name,
+            train=train,
+            test=test,
+            sample_sizes=sample_sizes,
+            redundancy=redundancy)
 
         (   avg_dict,
             std_dict,

@@ -18,7 +18,11 @@ def get_config():
     parser.add_argument('--dataset_name', type=str, required=True, choices=valid_choices,
                         help=f"Name of the dataset to run the simulation on. Choices: {', '.join(valid_choices)}.")
 
-    parser.add_argument('--redundancy', type=int, default=40, help='Number of times to sample the data')
+    parser.add_argument('--redundancy', type=int, default=200, help='Number of times to sample the data')
     parser.add_argument('--sample_sizes', type=int, nargs='+', default=[50, 100, 150, 200, 250, 500], help='Sizes of the samples to take')
 
-    return parser.parse_args()
+    args =  parser.parse_args()
+
+    if args.dataset_name == 'Sleep Efficiency':
+        args.sample_sizes = [size for size in args.sample_sizes if size <= 250]
+    return args

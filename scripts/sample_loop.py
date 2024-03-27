@@ -4,7 +4,7 @@ import numpy as np
 from scripts.genetic import GeneticAlgorithmSampler
 from scripts.fitness_funcs import *
 
-def sample_and_get_results(train, test,sample_sizes , redundancy):
+def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
     # y is the last column
     x_train = train[:, :-1]
     y_train = train[:, -1]
@@ -21,6 +21,7 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
     mse_dict_kl = {}
     mse_dict_kl_short = {}
     mse_dict_js = {}
+    mse_dict_js_short = {}
 
 
    
@@ -37,6 +38,7 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
         mse_dict_kl[sample_size] = []
         mse_dict_kl_short[sample_size] = []
         mse_dict_js[sample_size] = []
+        mse_dict_js_short[sample_size] = []
 
         
         for i in range(redundancy):
@@ -51,7 +53,7 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
                 x_train=x_train,
                 y_train=y_train,
                 population_size=10, 
-                max_generations=30,
+                max_generations=50,
                 crossover_rate=0.8, 
                 mutation_rate=0.6,
                 mutation_cap=0.2,
@@ -81,7 +83,7 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
                 x_train=x_train,
                 y_train=y_train,
                 population_size=10, 
-                max_generations=30,
+                max_generations=50,
                 crossover_rate=0.8, 
                 mutation_rate=0.6,
                 mutation_cap=0.2,
@@ -111,7 +113,7 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
                 x_train=x_train,
                 y_train=y_train,
                 population_size=10, 
-                max_generations=30,
+                max_generations=50,
                 crossover_rate=0.8, 
                 mutation_rate=0.6,
                 mutation_cap=0.2,
@@ -119,6 +121,60 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
                 verbose=False
             )
             x_train_js, y_train_js, history = genetic_sampler_js.sample()
+
+            genetic_sampler_js_short = GeneticAlgorithmSampler(
+                fitness_function='js_divergence',
+                sample_size=sample_size,
+                x_train=x_train,
+                y_train=y_train,
+                population_size=10,
+                max_generations=2,
+                crossover_rate=0.8,
+                mutation_rate=0.6,
+                mutation_cap=0.2,
+                elite_size=1,
+                verbose=False
+            )
+
+            x_train_js_short, y_train_js_short, history = genetic_sampler_js_short.sample()
+
+            # combined them
+            train_random = np.column_stack((x_train_random, y_train_random))
+            train_ws = np.column_stack((x_train_ws, y_train_ws))
+            train_ws_short = np.column_stack((x_train_ws_short, y_train_ws_short))
+            train_kl = np.column_stack((x_train_kl, y_train_kl))
+            train_kl_short = np.column_stack((x_train_kl_short, y_train_kl_short))
+            train_js = np.column_stack((x_train_js, y_train_js))
+            train_js_short = np.column_stack((x_train_js_short, y_train_js_short))
+
+            # make folder if it doesn't exist
+            if not os.path.exists(f'data/sampled_datasets/{dataset_name}/random'):
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/random')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/ws')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/ws_short')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/kl')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/kl_short')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/js')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/js_short')
+
+            if not os.path.exists(f'data/sampled_datasets/{dataset_name}/random/{sample_size}'):
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/random/{sample_size}')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/ws/{sample_size}')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/ws_short/{sample_size}')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/kl/{sample_size}')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/kl_short/{sample_size}')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/js/{sample_size}')
+                os.makedirs(f'data/sampled_datasets/{dataset_name}/js_short/{sample_size}')
+
+            # save them with a name that includes the redundancy number
+            np.savetxt(f'data/sampled_datasets/{dataset_name}/random/{sample_size}/sample_{i}.csv', train_random, delimiter=',')
+            np.savetxt(f'data/sampled_datasets/{dataset_name}/ws/{sample_size}/sample_{i}.csv', train_ws, delimiter=',')
+            np.savetxt(f'data/sampled_datasets/{dataset_name}/ws_short/{sample_size}/sample_{i}.csv', train_ws_short, delimiter=',')
+            np.savetxt(f'data/sampled_datasets/{dataset_name}/kl/{sample_size}/sample_{i}.csv', train_kl, delimiter=',')
+            np.savetxt(f'data/sampled_datasets/{dataset_name}/kl_short/{sample_size}/sample_{i}.csv', train_kl_short, delimiter=',')
+            np.savetxt(f'data/sampled_datasets/{dataset_name}/js/{sample_size}/sample_{i}.csv', train_js, delimiter=',')
+            np.savetxt(f'data/sampled_datasets/{dataset_name}/js_short/{sample_size}/sample_{i}.csv', train_js_short, delimiter=',')
+            
 
 
             
@@ -128,6 +184,7 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
             results_kl = xgb_results_regression(x_train_kl, x_test, y_train_kl, y_test)
             results_kl_short = xgb_results_regression(x_train_kl_short, x_test, y_train_kl_short, y_test)
             results_js = xgb_results_regression(x_train_js, x_test, y_train_js, y_test)
+            results_js_short = xgb_results_regression(x_train_js_short, x_test, y_train_js_short, y_test)
 
             
             mse_dict_random[sample_size].append(results_random['Testing Metrics']['MSE'])
@@ -136,6 +193,7 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
             mse_dict_kl[sample_size].append(results_kl['Testing Metrics']['MSE'])
             mse_dict_kl_short[sample_size].append(results_kl_short['Testing Metrics']['MSE'])
             mse_dict_js[sample_size].append(results_js['Testing Metrics']['MSE'])
+            mse_dict_js_short[sample_size].append(results_js_short['Testing Metrics']['MSE'])
 
         print('')
 
@@ -154,6 +212,8 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
     std_dict['KL Divergence Short'] = []
     avg_dict['JS Divergence'] = []
     std_dict['JS Divergence'] = []
+    avg_dict['JS Divergence Short'] = []
+    std_dict['JS Divergence Short'] = []
 
 
     for sample_size in sample_sizes:
@@ -169,8 +229,10 @@ def sample_and_get_results(train, test,sample_sizes , redundancy):
         std_dict['KL Divergence Short'].append(np.std(mse_dict_kl_short[sample_size]))
         avg_dict['JS Divergence'].append(np.mean(mse_dict_js[sample_size]))
         std_dict['JS Divergence'].append(np.std(mse_dict_js[sample_size]))
+        avg_dict['JS Divergence Short'].append(np.mean(mse_dict_js_short[sample_size]))
+        std_dict['JS Divergence Short'].append(np.std(mse_dict_js_short[sample_size]))
 
     mse_dicts = [mse_dict_random, mse_dict_ws, mse_dict_ws_short, mse_dict_kl, mse_dict_kl_short, mse_dict_js]
-    labels = ['Random', 'Wasserstein Distance', 'Wasserstein Distance Short', 'KL Divergence','KL Divergence Short', 'JS Divergence']
+    labels = ['Random', 'Wasserstein Distance', 'Wasserstein Distance Short', 'KL Divergence','KL Divergence Short', 'JS Divergence', 'JS Divergence Short']
 
     return avg_dict, std_dict, mse_dicts, labels, all_data_results, baseline_results
