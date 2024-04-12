@@ -12,7 +12,7 @@ def reverse_wasserstein_distance(samples_picked, train_data, train_pdfs, is_cons
     return -fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes)
 
 
-def fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, distance_function):
+def fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, distance_function, kde_bandwidth):
     samples_picked = samples_picked.astype(bool)
     samples_picked = samples_picked.flatten()
 
@@ -27,7 +27,11 @@ def fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins,
 
         # Otherwise calculate the wasserstein distance
         else:
-            kde2 = KernelDensity(bandwidth='silverman', kernel='gaussian')
+            if kde_bandwidth == None:
+                bandwidth = 'silverman'
+            else:
+                bandwidth = kde_bandwidth[i]
+            kde2 = KernelDensity(bandwidth=bandwidth, kernel='gaussian')
             kde2.fit(sample_feature.reshape(-1, 1))  # Reshape to make it a column vector
 
             # Step 2: Evaluate the KDRs at a set of points
@@ -44,18 +48,18 @@ def fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins,
 
 
 
-def fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes):
-    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, wasserstein_distance)
+def fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, kde_bandwidth):
+    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, wasserstein_distance, kde_bandwidth)
 
-def fitness_kl_divergence(samples_picked, train_data, train_pdfs, is_constant, mins, maxes):
-    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, entropy)
+def fitness_kl_divergence(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, kde_bandwidth):
+    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, entropy, kde_bandwidth)
 
-def fitness_js_divergence(samples_picked, train_data, train_pdfs, is_constant, mins, maxes):
-    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, jensenshannon)
+def fitness_js_divergence(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, kde_bandwidth):
+    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, jensenshannon, kde_bandwidth)
 
 
 # Calculate the pdfs for all features in the training data in order to not have to do it for sampling
-def full_train_pdf(train_data):
+def full_train_pdf(train_data, kde_bandwidth=None):
 
     feature_count = train_data.shape[1]
     pdfs = []
@@ -75,7 +79,11 @@ def full_train_pdf(train_data):
         # Otherwise calculate the wasserstein distance
         else:
             # Step 1: Create KDR for each feature
-            kde = KernelDensity(bandwidth='silverman', kernel='gaussian')
+            if kde_bandwidth == None:
+                bandwidth = 'silverman'
+            else:
+                bandwidth = kde_bandwidth[i]
+            kde = KernelDensity(bandwidth=bandwidth, kernel='gaussian')
             kde.fit(feature.reshape(-1, 1))  # Reshape to make it a column vector
 
             # Step 2: Evaluate the KDRs at a set of points

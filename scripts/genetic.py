@@ -9,8 +9,8 @@ from scripts.fitness_funcs import fitness_wasserstein_distance, full_train_pdf, 
 
 
 
-def calculate_fitness(sample, used_training, fitness_function, pdfs, is_constant, mins, maxes):
-    return fitness_function(sample, used_training, pdfs, is_constant, mins, maxes)
+def calculate_fitness(sample, used_training, fitness_function, pdfs, is_constant, mins, maxes, kde_bandwidth=None):
+    return fitness_function(sample, used_training, pdfs, is_constant, mins, maxes, kde_bandwidth)
 
 class GeneticAlgorithmSampler():
     def __init__(self,
@@ -23,7 +23,9 @@ class GeneticAlgorithmSampler():
                                 mutation_rate = 0.1,
                                     crossover_rate = 0.8,
                                   max_generations = 10,
-                                    features_indices_to_drop = set(), verbose = False):
+                                    features_indices_to_drop = set(),
+                                      verbose = False,
+                                      use_same_bandwidth = False):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
@@ -40,7 +42,29 @@ class GeneticAlgorithmSampler():
         self.indices_to_use = list(set(all_indices) - set(self.features_indices_to_drop))
         self.used_training = self.x_train[:, self.indices_to_use]
         self.verbose = verbose
-        self.pdfs, self.is_consant, self.mins, self.maxes = full_train_pdf(self.used_training)
+        self.kde_bandwidth = self.get_kde_bandwidth()
+        self.use_same_bandwidth = use_same_bandwidth
+        
+        if self.use_same_bandwidth == False:
+            self.pdfs, self.is_consant, self.mins, self.maxes = full_train_pdf(self.used_training)
+        else:
+            self.pdfs, self.is_consant, self.mins, self.maxes = full_train_pdf(self.used_training, self.kde_bandwidth)
+
+
+    def get_kde_bandwidth(self):
+        bandwidths = []
+        for i in range(self.used_training.shape[1]):
+            bandwidths.append(self.silverman_bandwidth(self.used_training[:, i]))
+        return bandwidths
+
+    def silverman_bandwidth(self, data):
+        # Calculate standard deviation of the data
+        std_dev = np.std(data)
+        # Number of data points
+        n = self.sample_size
+        # Calculate bandwidth using Silverman's rule of thumb
+        bandwidth = (4 * std_dev**5 / (3 * n))**(1/5)
+        return bandwidth
 
 
 
@@ -97,17 +121,30 @@ class GeneticAlgorithmSampler():
 
 
     def calc_fitnesses(self):
-        if self.fitness_function == 'wasserstein_distance':
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
-        elif self.fitness_function == 'kl_divergence':
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_kl_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
-        elif self.fitness_function == 'js_divergence':
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_js_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+        if self.use_same_bandwidth == False:
+            if self.fitness_function == 'wasserstein_distance':
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+            elif self.fitness_function == 'kl_divergence':
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_kl_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+            elif self.fitness_function == 'js_divergence':
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_js_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+            else:
+                raise ValueError("Invalid fitness function")
         else:
-            raise ValueError("Invalid fitness function")
+            if self.fitness_function == 'wasserstein_distance':
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.kde_bandwidth]*len(self.population)))
+            elif self.fitness_function == 'kl_divergence':
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_kl_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.kde_bandwidth]*len(self.population)))
+            elif self.fitness_function == 'js_divergence':
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_js_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.kde_bandwidth]*len(self.population)))
+            else:
+                raise ValueError("Invalid fitness function")
     
         self.population, self.fitnesses = zip(*sorted(zip(self.population, self.fitnesses), key=lambda x: x[1], reverse=True))
 
