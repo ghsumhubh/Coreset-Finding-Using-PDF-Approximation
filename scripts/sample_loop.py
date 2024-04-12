@@ -58,6 +58,7 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_rate=0.6,
                 mutation_cap=0.2,
                 elite_size=1,
+                use_same_bandwidth=True,
                 verbose=False
             )
             x_train_ws, y_train_ws, history = genetic_sampler_ws.sample()
@@ -73,6 +74,7 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_rate=0.6,
                 mutation_cap=0.2,
                 elite_size=1,
+                use_same_bandwidth=True,
                 verbose=False
             )
             x_train_ws_short, y_train_ws_short, history = genetic_sampler_ws_short.sample()
@@ -88,6 +90,7 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_rate=0.6,
                 mutation_cap=0.2,
                 elite_size=1,
+                use_same_bandwidth=True,
                 verbose=False
             )
             x_train_kl, y_train_kl, history = genetic_sampler_kl.sample()
@@ -103,6 +106,7 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_rate=0.6,
                 mutation_cap=0.2,
                 elite_size=1,
+                use_same_bandwidth=True,
                 verbose=False
             )
             x_train_kl_short, y_train_kl_short, history = genetic_sampler_kl_short.sample()
@@ -118,6 +122,7 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_rate=0.6,
                 mutation_cap=0.2,
                 elite_size=1,
+                use_same_bandwidth=True,
                 verbose=False
             )
             x_train_js, y_train_js, history = genetic_sampler_js.sample()
@@ -133,6 +138,7 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_rate=0.6,
                 mutation_cap=0.2,
                 elite_size=1,
+                use_same_bandwidth=True,
                 verbose=False
             )
 

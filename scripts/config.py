@@ -34,3 +34,10 @@ def get_config():
     args.sample_sizes = dataset_names_to_sizes[args.dataset_name] 
 
     return args
+
+
+def get_sample_sizes_for_dataset(dataset_name):
+    return dataset_names_to_sizes[dataset_name]
+
+def get_all_dataset_names():
+    return ALL_DATASET_NAMES
