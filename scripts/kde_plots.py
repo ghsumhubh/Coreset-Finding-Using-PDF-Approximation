@@ -7,11 +7,11 @@ import os
 
 
 
-def silverman_bandwidth(data):
+def silverman_bandwidth(data, files_concacted = 1):
     # Calculate standard deviation of the data
     std_dev = np.std(data)
     # Number of data points
-    n = len(data)
+    n = len(data)/files_concacted
     # Calculate bandwidth using Silverman's rule of thumb
     bandwidth = (4 * std_dev**5 / (3 * n))**(1/5)
     return bandwidth
@@ -55,9 +55,9 @@ def plot_comparative_kde(values_original, values_sampled, feature_name, sampler,
                                                 
     x = np.linspace(min, max, 100000)
     logprob = kde.score_samples(x[:, None])
-    plt.fill_between(x, np.exp(logprob), alpha=0.5, label='original')
-    kde.fit(values_sampled[:, None])
+    plt.plot(x, np.exp(logprob), color='black', linestyle='-', linewidth=1, label='original')
 
+    kde.fit(values_sampled[:, None])
     x = np.linspace(min, max, 100000)
     logprob = kde.score_samples(x[:, None])
     plt.fill_between(x, np.exp(logprob), alpha=0.5, label='sampled')
@@ -65,11 +65,11 @@ def plot_comparative_kde(values_original, values_sampled, feature_name, sampler,
     plt.legend()
     plt.show()
 
-def plot_head_to_head_kde(values_original, values_sampler_1, values_sampler_2, feature_name, sampler_1_name, sampler_2_name, fixed=False):
+def plot_head_to_head_kde(values_original, values_sampler_1, values_sampler_2, feature_name, sampler_1_name, sampler_2_name, fixed=False, files_concacted = 1):
         if not fixed:
             kde = KernelDensity(bandwidth='silverman', kernel='gaussian')
         else:
-            bandwidth = silverman_bandwidth(values_sampler_1) 
+            bandwidth = silverman_bandwidth(values_sampler_1, files_concacted=files_concacted) 
             # the same but compare to kde of values_original
             kde = KernelDensity(bandwidth=bandwidth, kernel='gaussian')
         # plot it
@@ -79,7 +79,7 @@ def plot_head_to_head_kde(values_original, values_sampler_1, values_sampler_2, f
         max = np.max(values_original)                                         
         x = np.linspace(min, max, 100000)
         logprob = kde.score_samples(x[:, None])
-        plt.plot(x, np.exp(logprob), color='black', linestyle='-', linewidth=2, label='original')
+        plt.plot(x, np.exp(logprob), color='black', linestyle='-', linewidth=1, label='original')
 
         kde.fit(values_sampler_1[:, None])
         x = np.linspace(min, max, 100000)
@@ -129,10 +129,12 @@ def plot_head_to_head_kde_per_feature_sampled(original_path, path_1, path_2, fea
 def plot_head_to_head_kde_per_feature_sampled_concacted(original_path, path_1, path_2, feature_names, sampler_1_name, sampler_2_name, n_files = None, fixed=False):
     original = pd.read_csv(original_path)
     # get all csv files in path_1
+    files_concacted = 0
     dfs_1 = []
     for f in os.listdir(path_1):
         if f.endswith('.csv') and (n_files is None or len(dfs_1) < n_files):
             dfs_1.append(pd.read_csv(path_1 + '/' + f, header=None))
+            files_concacted += 1
     
     dfs_2 = []
     for f in os.listdir(path_2):
@@ -141,5 +143,7 @@ def plot_head_to_head_kde_per_feature_sampled_concacted(original_path, path_1, p
     df_1 = pd.concat(dfs_1, axis=0)
     df_2 = pd.concat(dfs_2, axis=0)
 
+    print("Concacted {} files".format(files_concacted))
+
     for i in range(original.shape[1]):
-        plot_head_to_head_kde(original.iloc[:, i].values, df_1.iloc[:, i].values, df_2.iloc[:, i].values, feature_names[i], sampler_1_name, sampler_2_name, fixed=fixed)
+        plot_head_to_head_kde(original.iloc[:, i].values, df_1.iloc[:, i].values, df_2.iloc[:, i].values, feature_names[i], sampler_1_name, sampler_2_name, fixed=fixed, files_concacted = files_concacted)
