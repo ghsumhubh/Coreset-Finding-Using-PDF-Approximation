@@ -9,23 +9,24 @@ from scripts.fitness_funcs import fitness_wasserstein_distance, full_train_pdf, 
 
 
 
-def calculate_fitness(sample, used_training, fitness_function, pdfs, is_constant, mins, maxes, kde_bandwidth=None):
-    return fitness_function(sample, used_training, pdfs, is_constant, mins, maxes, kde_bandwidth)
+def calculate_fitness(sample, df_for_ga, fitness_function, pdfs, is_constant, mins, maxes, kde_bandwidth=None, weights_for_features=None):
+    return fitness_function(sample, df_for_ga, pdfs, is_constant, mins, maxes, kde_bandwidth, weights_for_features)
 
 class GeneticAlgorithmSampler():
     def __init__(self,
-                  fitness_function,
-                    sample_size,
-                      x_train, y_train,
-                        elite_size = 3,
-                          mutation_cap = 5,
-                            population_size = 10,
-                                mutation_rate = 0.1,
-                                    crossover_rate = 0.8,
-                                  max_generations = 10,
-                                    features_indices_to_drop = set(),
-                                      verbose = False,
-                                      use_same_bandwidth = False):
+                fitness_function,
+                sample_size,
+                x_train, y_train,
+                elite_size = 3,
+                mutation_cap = 5,
+                population_size = 10,
+                mutation_rate = 0.1,
+                crossover_rate = 0.8,
+                max_generations = 10,
+                verbose = False,
+                use_same_bandwidth = False,
+                df_for_ga = None,
+                weights_for_features = None):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
@@ -37,24 +38,38 @@ class GeneticAlgorithmSampler():
         self.elite_size = elite_size
         self.history = []
         self.mutation_cap = mutation_cap
-        self.features_indices_to_drop = features_indices_to_drop
-        all_indices = [i for i in range(0,self.x_train.shape[1])]
-        self.indices_to_use = list(set(all_indices) - set(self.features_indices_to_drop))
-        self.used_training = self.x_train[:, self.indices_to_use]
+
+
+        # If specifically specified what columns to use then use those, otherwise just use all the columns in x_train
+        if df_for_ga is None:
+            self.df_for_ga = self.x_train
+        else:
+            self.df_for_ga = df_for_ga
+
+        if weights_for_features is None:
+            self.weights_for_features = [1 for _ in range(self.df_for_ga.shape[1])]
+        else:
+            self.weights_for_features = weights_for_features
+
+        # get number of columns in df_for_ga matches the number of weights for features if exists
+        if len(self.weights_for_features) != self.df_for_ga.shape[1]:
+            raise ValueError("Number of weights for features does not match the number of columns in the dataframe")
+        
+
         self.verbose = verbose
         self.kde_bandwidth = self.get_kde_bandwidth()
         self.use_same_bandwidth = use_same_bandwidth
         
         if self.use_same_bandwidth == False:
-            self.pdfs, self.is_consant, self.mins, self.maxes = full_train_pdf(self.used_training)
+            self.pdfs, self.is_consant, self.mins, self.maxes = full_train_pdf(self.df_for_ga)
         else:
-            self.pdfs, self.is_consant, self.mins, self.maxes = full_train_pdf(self.used_training, self.kde_bandwidth)
+            self.pdfs, self.is_consant, self.mins, self.maxes = full_train_pdf(self.df_for_ga, self.kde_bandwidth)
 
 
     def get_kde_bandwidth(self):
         bandwidths = []
-        for i in range(self.used_training.shape[1]):
-            bandwidths.append(self.silverman_bandwidth(self.used_training[:, i]))
+        for i in range(self.df_for_ga.shape[1]):
+            bandwidths.append(self.silverman_bandwidth(self.df_for_ga[:, i]))
         return bandwidths
 
     def silverman_bandwidth(self, data):
@@ -71,8 +86,8 @@ class GeneticAlgorithmSampler():
     def init_first_population(self):
         self.population = []
         for _ in range(self.population_size):
-            indices = np.random.choice(self.used_training.shape[0], self.sample_size, replace=False)
-            sample = np.zeros(self.used_training.shape[0])
+            indices = np.random.choice(self.df_for_ga.shape[0], self.sample_size, replace=False)
+            sample = np.zeros(self.df_for_ga.shape[0])
             sample[indices] = 1
             self.population.append(sample)
         
@@ -124,25 +139,25 @@ class GeneticAlgorithmSampler():
         if self.use_same_bandwidth == False:
             if self.fitness_function == 'wasserstein_distance':
                 with concurrent.futures.ProcessPoolExecutor() as executor:
-                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.df_for_ga]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.weights_for_features]*len(self.population)))
             elif self.fitness_function == 'kl_divergence':
                 with concurrent.futures.ProcessPoolExecutor() as executor:
-                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_kl_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.df_for_ga]*len(self.population), [fitness_kl_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.weights_for_features]*len(self.population)))
             elif self.fitness_function == 'js_divergence':
                 with concurrent.futures.ProcessPoolExecutor() as executor:
-                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_js_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population)))
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.df_for_ga]*len(self.population), [fitness_js_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.weights_for_features]*len(self.population)))
             else:
                 raise ValueError("Invalid fitness function")
         else:
             if self.fitness_function == 'wasserstein_distance':
                 with concurrent.futures.ProcessPoolExecutor() as executor:
-                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.kde_bandwidth]*len(self.population)))
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.df_for_ga]*len(self.population), [fitness_wasserstein_distance]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.kde_bandwidth]*len(self.population), [self.weights_for_features]*len(self.population)))
             elif self.fitness_function == 'kl_divergence':
                 with concurrent.futures.ProcessPoolExecutor() as executor:
-                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_kl_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.kde_bandwidth]*len(self.population)))
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.df_for_ga]*len(self.population), [fitness_kl_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.kde_bandwidth]*len(self.population), [self.weights_for_features]*len(self.population)))
             elif self.fitness_function == 'js_divergence':
                 with concurrent.futures.ProcessPoolExecutor() as executor:
-                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.used_training]*len(self.population), [fitness_js_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.kde_bandwidth]*len(self.population)))
+                    self.fitnesses = list(executor.map(calculate_fitness, self.population, [self.df_for_ga]*len(self.population), [fitness_js_divergence]*len(self.population), [self.pdfs]*len(self.population), [self.is_consant]*len(self.population), [self.mins]*len(self.population), [self.maxes]*len(self.population), [self.kde_bandwidth]*len(self.population), [self.weights_for_features]*len(self.population)))
             else:
                 raise ValueError("Invalid fitness function")
     

@@ -8,11 +8,11 @@ NUMBER_OF_POINTS = 1000
 
 
 
-def reverse_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes):
-    return -fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes)
+# def reverse_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes):
+#     return -fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes)
 
 
-def fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, distance_function, kde_bandwidth):
+def fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, distance_function, kde_bandwidth, weights_for_features):
     samples_picked = samples_picked.astype(bool)
     samples_picked = samples_picked.flatten()
 
@@ -40,7 +40,7 @@ def fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins,
             pdf2 = np.exp(kde2.score_samples(x))
 
             # Step 3: Calculate the Wasserstein distance
-            distance += distance_function(pdf1, pdf2)
+            distance += distance_function(pdf1, pdf2) * weights_for_features[i]
 
     # the fitness is minus the distance
     return -distance
@@ -48,14 +48,14 @@ def fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins,
 
 
 
-def fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, kde_bandwidth):
-    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, wasserstein_distance, kde_bandwidth)
+def fitness_wasserstein_distance(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, kde_bandwidth, weights_for_features):
+    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, wasserstein_distance, kde_bandwidth, weights_for_features)
 
-def fitness_kl_divergence(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, kde_bandwidth):
-    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, entropy, kde_bandwidth)
+def fitness_kl_divergence(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, kde_bandwidth, weights_for_features):
+    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, entropy, kde_bandwidth, weights_for_features)
 
-def fitness_js_divergence(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, kde_bandwidth):
-    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, jensenshannon, kde_bandwidth)
+def fitness_js_divergence(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, kde_bandwidth, weights_for_features):
+    return fitness_pdf_based(samples_picked, train_data, train_pdfs, is_constant, mins, maxes, jensenshannon, kde_bandwidth, weights_for_features)
 
 
 # Calculate the pdfs for all features in the training data in order to not have to do it for sampling

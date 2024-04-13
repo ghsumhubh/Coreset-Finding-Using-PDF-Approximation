@@ -16,12 +16,12 @@ ALL_DATASET_NAMES = [   'Abalone',
 
 
 
-def do_full_simulation(dataset_name, sample_sizes, redundancy):
+def do_full_simulation(dataset_name, sample_sizes, redundancy, columns_to_use=None, weights = None):
     print('Running full simulation for', dataset_name)
     create_output_folder(dataset_name)
 
-    train = pd.read_csv(f'data/split_datasets/{dataset_name}/train.csv').to_numpy()
-    test = pd.read_csv(f'data/split_datasets/{dataset_name}/test.csv').to_numpy()
+    train = pd.read_csv(f'data/split_datasets/{dataset_name}/train.csv')
+    test = pd.read_csv(f'data/split_datasets/{dataset_name}/test.csv')
 
 
     results =  sample_and_get_results(
@@ -29,7 +29,9 @@ def do_full_simulation(dataset_name, sample_sizes, redundancy):
         train=train,
         test=test,
         sample_sizes=sample_sizes,
-        redundancy=redundancy)
+        redundancy=redundancy,
+        columns_to_use=columns_to_use,
+        weights=weights)
 
     (   avg_dict,
         std_dict,

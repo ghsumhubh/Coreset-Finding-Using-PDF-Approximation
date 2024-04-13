@@ -4,13 +4,15 @@ import numpy as np
 from scripts.genetic import GeneticAlgorithmSampler
 from scripts.fitness_funcs import *
 
-def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
-    # y is the last column
-    x_train = train[:, :-1]
-    y_train = train[:, -1]
+def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy, columns_to_use=None, weights = None):
 
-    x_test = test[:, :-1]
-    y_test = test[:, -1]
+    # y is the last column
+    x_train = train.iloc[:, :-1].to_numpy()  # Select all rows and all columns except the last
+    y_train = train.iloc[:, -1].to_numpy()   # Select all rows and only the last column
+
+    x_test = test.iloc[:, :-1].to_numpy()    # Do the same for the 'test' DataFrame
+    y_test = test.iloc[:, -1].to_numpy()
+
 
     all_data_results, baseline_results = get_all_data_and_baseline_results(x_train, x_test, y_train, y_test)
 
@@ -22,6 +24,19 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
     mse_dict_kl_short = {}
     mse_dict_js = {}
     mse_dict_js_short = {}
+
+    # If no columns are specified, use all x_train columns, otherwise use the specified columns
+    if columns_to_use is None:
+        columns_to_use = list(range(x_train.shape[1]))
+    
+    df_for_ga = pd.DataFrame(train)
+    df_for_ga = df_for_ga[columns_to_use].to_numpy()
+    print('Columns to use:', columns_to_use)
+
+    if weights is None:
+        weights = [1 for _ in range(columns_to_use)]
+  
+
 
 
    
@@ -59,7 +74,9 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_cap=0.2,
                 elite_size=1,
                 use_same_bandwidth=True,
-                verbose=False
+                verbose=False,
+                df_for_ga=df_for_ga,
+                weights_for_features=weights
             )
             x_train_ws, y_train_ws, history = genetic_sampler_ws.sample()
 
@@ -75,7 +92,9 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_cap=0.2,
                 elite_size=1,
                 use_same_bandwidth=True,
-                verbose=False
+                verbose=False,
+                df_for_ga=df_for_ga,
+                weights_for_features=weights
             )
             x_train_ws_short, y_train_ws_short, history = genetic_sampler_ws_short.sample()
            
@@ -91,7 +110,9 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_cap=0.2,
                 elite_size=1,
                 use_same_bandwidth=True,
-                verbose=False
+                verbose=False,
+                df_for_ga=df_for_ga,
+                weights_for_features=weights
             )
             x_train_kl, y_train_kl, history = genetic_sampler_kl.sample()
 
@@ -107,7 +128,9 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_cap=0.2,
                 elite_size=1,
                 use_same_bandwidth=True,
-                verbose=False
+                verbose=False,
+                df_for_ga=df_for_ga,
+                weights_for_features=weights
             )
             x_train_kl_short, y_train_kl_short, history = genetic_sampler_kl_short.sample()
 
@@ -123,7 +146,9 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_cap=0.2,
                 elite_size=1,
                 use_same_bandwidth=True,
-                verbose=False
+                verbose=False,
+                df_for_ga=df_for_ga,
+                weights_for_features=weights
             )
             x_train_js, y_train_js, history = genetic_sampler_js.sample()
 
@@ -139,7 +164,9 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy):
                 mutation_cap=0.2,
                 elite_size=1,
                 use_same_bandwidth=True,
-                verbose=False
+                verbose=False,
+                df_for_ga=df_for_ga,
+                weights_for_features=weights
             )
 
             x_train_js_short, y_train_js_short, history = genetic_sampler_js_short.sample()

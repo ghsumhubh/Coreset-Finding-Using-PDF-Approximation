@@ -41,3 +41,6 @@ def get_sample_sizes_for_dataset(dataset_name):
 
 def get_all_dataset_names():
     return ALL_DATASET_NAMES
+
+def get_dataset_columns(df):
+    return df.columns.tolist()
