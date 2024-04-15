@@ -26,15 +26,23 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy, 
     mse_dict_js_short = {}
 
     # If no columns are specified, use all x_train columns, otherwise use the specified columns
-    if columns_to_use is None:
-        columns_to_use = list(range(x_train.shape[1]))
+    if columns_to_use is None or columns_to_use is 'FEATURES':
+        # get all column_names from train
+        columns_to_use = train.columns[:-1]
+        columns_to_use = columns_to_use.tolist()
+    elif columns_to_use is 'ALL':
+        columns_to_use = train.columns.tolist()
+    
+
+        
+        
     
     df_for_ga = pd.DataFrame(train)
     df_for_ga = df_for_ga[columns_to_use].to_numpy()
     print('Columns to use:', columns_to_use)
 
     if weights is None:
-        weights = [1 for _ in range(columns_to_use)]
+        weights = [1 for _ in range(len(columns_to_use))]
   
 
 

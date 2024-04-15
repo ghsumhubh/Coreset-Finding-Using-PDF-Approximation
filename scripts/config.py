@@ -19,6 +19,10 @@ dataset_names_to_sizes = {
     'Wine Quality': [100, 150, 200, 250,350, 500],
 }
 
+
+
+
+
 def get_config():
     parser = argparse.ArgumentParser(description='Script to run simulations on different datasets. Choose a specific dataset or "All" to run on all available datasets.')
 
@@ -28,6 +32,8 @@ def get_config():
  
     parser.add_argument('--redundancy', type=int, default=20, help='Number of times to sample the data')
     #parser.add_argument('--sample_sizes', type=int, nargs='+', default=[50, 100, 150, 200, 250, 500], help='Sizes of the samples to take')
+
+    parser.add_argument('--columns_to_use', type=str, nargs='+', required=True, help='ALL for all columns, FEATURES for only features', choices=['ALL', 'FEATURES'])
 
     args =  parser.parse_args()
 
@@ -42,5 +48,3 @@ def get_sample_sizes_for_dataset(dataset_name):
 def get_all_dataset_names():
     return ALL_DATASET_NAMES
 
-def get_dataset_columns(df):
-    return df.columns.tolist()
