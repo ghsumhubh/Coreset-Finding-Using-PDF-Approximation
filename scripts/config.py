@@ -33,7 +33,7 @@ def get_config():
     parser.add_argument('--redundancy', type=int, default=20, help='Number of times to sample the data')
     #parser.add_argument('--sample_sizes', type=int, nargs='+', default=[50, 100, 150, 200, 250, 500], help='Sizes of the samples to take')
 
-    parser.add_argument('--columns_to_use', type=str, nargs='+', required=True, help='ALL for all columns, FEATURES for only features', choices=['ALL', 'FEATURES'])
+    parser.add_argument('--columns_to_use', type=str , required=True, help='ALL for all columns, FEATURES for only features', choices=['ALL', 'FEATURES'])
 
     args =  parser.parse_args()
 
