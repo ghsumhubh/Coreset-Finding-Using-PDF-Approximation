@@ -26,11 +26,11 @@ def sample_and_get_results(dataset_name, train, test,sample_sizes , redundancy, 
     mse_dict_js_short = {}
 
     # If no columns are specified, use all x_train columns, otherwise use the specified columns
-    if columns_to_use is None or columns_to_use is 'FEATURES':
+    if columns_to_use is None or columns_to_use == 'FEATURES':
         # get all column_names from train
         columns_to_use = train.columns[:-1]
         columns_to_use = columns_to_use.tolist()
-    elif columns_to_use is 'ALL':
+    elif columns_to_use == 'ALL':
         columns_to_use = train.columns.tolist()
     
 
