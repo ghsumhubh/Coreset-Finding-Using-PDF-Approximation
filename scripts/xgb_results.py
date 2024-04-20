@@ -2,7 +2,7 @@ import xgboost as xgb
 import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-
+import shap
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error, r2_score, roc_auc_score, average_precision_score
 from scipy.stats import pearsonr, spearmanr
@@ -64,6 +64,39 @@ def get_all_data_and_baseline_results(x_train, x_test, y_train, y_test):
     return all_data_results, baseline_results
 
 
+
+
+def get_shap_values_after_xgb(x_train, y_train):
+    xgb_params = {
+        'n_estimators': 100,
+        'n_jobs': -1,
+        'random_state': 42, 
+    }
+
+
+    # Initialize XGBoost regressor with custom parameters
+    model = xgb.XGBRegressor(**xgb_params)
+
+    # Train the model
+    model.fit(x_train, y_train)
+
+    # Create a SHAP explainer object using the model
+    explainer = shap.Explainer(model)
+
+    # Calculate SHAP values for the training set
+    shap_values = explainer(x_train)
+
+    # Aggregate the absolute SHAP values to determine the importance of each feature
+    shap_importance = np.abs(shap_values.values).mean(axis=0)
+
+    # Create a DataFrame to view the feature importances
+    feature_importance_df = pd.DataFrame({
+        'Feature': x_train.columns,
+        'SHAP Importance': shap_importance
+    })
+
+    # Return the DataFrame sorted by importance
+    return feature_importance_df.sort_values(by='SHAP Importance', ascending=False)
 
 
     

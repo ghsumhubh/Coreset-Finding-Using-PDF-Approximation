@@ -147,3 +147,15 @@ def plot_head_to_head_kde_per_feature_sampled_concacted(original_path, path_1, p
 
     for i in range(original.shape[1]):
         plot_head_to_head_kde(original.iloc[:, i].values, df_1.iloc[:, i].values, df_2.iloc[:, i].values, feature_names[i], sampler_1_name, sampler_2_name, fixed=fixed, files_concacted = files_concacted)
+
+def plot_shap(df):
+
+    # Plotting
+    plt.figure(figsize=(10, 8))  # Adjust the size as per your preference
+    plt.barh(df['Feature'], df['SHAP Importance'], color='skyblue')  # You can choose any color
+    plt.xlabel('SHAP Importance')
+    plt.title('Feature Importance Ranking')
+    plt.grid(True, linestyle='--', alpha=0.6)  # Adding a grid for easier reading; customize as needed
+
+    # Show the plot
+    plt.show()
