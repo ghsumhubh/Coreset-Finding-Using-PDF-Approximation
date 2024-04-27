@@ -59,4 +59,4 @@ def do_full_simulation(dataset_name, sample_sizes, redundancy, columns_to_use=No
                         baseline_results=baseline_results,
                         sample_sizes=sample_sizes)
     
-print('Finished running full simulation')
+    print('Finished running full simulation')

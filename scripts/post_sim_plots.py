@@ -74,6 +74,8 @@ def plot_head_to_head_kde(values_original, values_sampler_1, values_sampler_2, f
             kde = KernelDensity(bandwidth=bandwidth, kernel='gaussian')
         # plot it
 
+  
+        
         kde.fit(values_original[:, None])
         min = np.min(values_original)
         max = np.max(values_original)                                         
@@ -126,6 +128,37 @@ def plot_head_to_head_kde_per_feature_sampled(original_path, path_1, path_2, fea
 
 
 
+def plot_head_to_head_kde_per_feature_sampled_concacted_substrat(original_path, path_1, path_2, feature_names, sampler_1_name, sampler_2_name, n_files = None, fixed=False):
+    original = pd.read_csv(original_path)
+    # get all csv files in path_1
+    files_concacted = 0
+    dfs_1 = []
+    for f in os.listdir(path_1):
+        if f.endswith('.csv') and (n_files is None or len(dfs_1) < n_files):
+            dfs_1.append(pd.read_csv(path_1 + '/' + f, header=None))
+            files_concacted += 1
+
+    df_1 = pd.concat(dfs_1, axis=0)
+        
+
+
+
+    for i in range(original.shape[1]):
+        dfs_2 = []
+        for f in os.listdir(path_2):
+            if f.endswith('.csv') and (n_files is None or len(dfs_2) < n_files):
+                new_df = pd.read_csv(path_2 + '/' + f)
+                # if has diameter column add
+                if feature_names[i] in new_df.columns:
+                    dfs_2.append(new_df)
+        df_2 = pd.concat(dfs_2, axis=0)
+        #print(df_2.head())
+        sub_feature_value = df_2[feature_names[i]].values
+        plot_head_to_head_kde(original.iloc[:, i].values, df_1.iloc[:, i].values, sub_feature_value, feature_names[i], sampler_1_name, sampler_2_name, fixed=fixed, files_concacted = files_concacted)
+
+
+
+
 def plot_head_to_head_kde_per_feature_sampled_concacted(original_path, path_1, path_2, feature_names, sampler_1_name, sampler_2_name, n_files = None, fixed=False):
     original = pd.read_csv(original_path)
     # get all csv files in path_1
@@ -135,16 +168,19 @@ def plot_head_to_head_kde_per_feature_sampled_concacted(original_path, path_1, p
         if f.endswith('.csv') and (n_files is None or len(dfs_1) < n_files):
             dfs_1.append(pd.read_csv(path_1 + '/' + f, header=None))
             files_concacted += 1
+
+    df_1 = pd.concat(dfs_1, axis=0)
     
     dfs_2 = []
     for f in os.listdir(path_2):
         if f.endswith('.csv') and (n_files is None or len(dfs_2) < n_files):
             dfs_2.append(pd.read_csv(path_2 + '/' + f, header=None))
-    df_1 = pd.concat(dfs_1, axis=0)
     df_2 = pd.concat(dfs_2, axis=0)
 
-    print("Concacted {} files".format(files_concacted))
 
+
+
+    print("Concacted {} files".format(files_concacted))
     for i in range(original.shape[1]):
         plot_head_to_head_kde(original.iloc[:, i].values, df_1.iloc[:, i].values, df_2.iloc[:, i].values, feature_names[i], sampler_1_name, sampler_2_name, fixed=fixed, files_concacted = files_concacted)
 
